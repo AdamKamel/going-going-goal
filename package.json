@@ -1,0 +1,9 @@
+{
+  "name": "going-going-goal",
+  "version": "1.0.0",
+  "description": "A live football transfer auction game",
+  "private": true,
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" }
+}
