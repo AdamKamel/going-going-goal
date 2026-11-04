@@ -1,0 +1,2528 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Going, Going, Goal!</title>
+<meta name="description" content="A free live football transfer auction. Bid against friends for 11 players, set your XI and win the league.">
+<meta name="theme-color" content="#1E7A49">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%23FFC81E' stroke='%2317241B' stroke-width='2'/%3E%3Ctext x='16' y='22' font-size='17' font-family='Arial' font-weight='700' text-anchor='middle' fill='%2317241B'%3EG%3C/text%3E%3C/svg%3E">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui}img{max-width:100%}[hidden]{display:none!important}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@700;800;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spline+Sans+Mono:wght@500;600;700&display=swap">
+<style>/* Layout concept: a floodlit pitch is the auction floor. Everything live happens on the striped stage; paperwork sits around it. */
+:root{
+  --bg:#E6ECE2; --surface:#FAFCF7; --surface2:#EFF3EA; --ink:#10261C; --mute:#566A5E; --line:#C5D1C2;
+  --pitch:#1E7A49; --pitch2:#1A6E41; --pitchline:rgba(255,255,255,.55); --chalk:#F6FAF1; --chalkmute:#C9E2D1;
+  --paddle:#FFC81E; --paddle-ink:#17241B; --stamp:#D42F27; --good:#17794A; --warn:#A5660B;
+  --card:#FBFCF6; --card-ink:#12261C; --card-mute:#5A6C60; --card-line:#D5DDD0;
+  --display:"Big Shoulders Display","Big Shoulders","Impact","Haettenschweiler","Arial Narrow",sans-serif;
+  --body:"Instrument Sans","Segoe UI",system-ui,sans-serif;
+  --data:"Spline Sans Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0C231B; --surface:#14322699; --surface2:#16362A; --ink:#E9F2E7; --mute:#9DB4A6; --line:#2C4C3D;
+  --surface:#132E24; --pitch:#17653C; --pitch2:#145934; --stamp:#F0483E; --good:#57C78E; --warn:#EDB458; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0C231B; --surface:#132E24; --surface2:#16362A; --ink:#E9F2E7; --mute:#9DB4A6; --line:#2C4C3D;
+  --pitch:#17653C; --pitch2:#145934; --stamp:#F0483E; --good:#57C78E; --warn:#EDB458; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--ink);font:400 15px/1.5 var(--body);-webkit-text-size-adjust:100%}
+h1,h2,h3,h4,p{margin:0}
+h1,h2,h3{font-family:var(--display);font-weight:800;line-height:1;text-wrap:balance;letter-spacing:.005em}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+button:disabled{cursor:not-allowed}
+:focus-visible{outline:3px solid var(--paddle);outline-offset:2px}
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.num{font-family:var(--data);font-variant-numeric:tabular-nums}
+.label{font:600 11px/1.2 var(--data);letter-spacing:.09em;text-transform:uppercase;color:var(--mute)}
+.mute{color:var(--mute)}
+
+/* pitch surface */
+.pitchbg{background-color:var(--pitch);background-image:repeating-linear-gradient(90deg,var(--pitch) 0 72px,var(--pitch2) 72px 144px);color:var(--chalk)}
+.pitchbg .label{color:var(--chalkmute)}
+section.pitchbg{overflow:clip}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:10px 18px;border:2px solid var(--ink);background:transparent;border-radius:6px;font-weight:600;transition:transform .08s,background .15s}
+.btn:hover:not(:disabled){background:var(--surface2)}
+.btn:active:not(:disabled){transform:translateY(1px)}
+.btn:disabled{opacity:.45}
+.btn.primary{background:var(--paddle);border-color:var(--paddle-ink);color:var(--paddle-ink);font-weight:700;box-shadow:0 3px 0 var(--paddle-ink)}
+.btn.primary:hover:not(:disabled){background:#FFD54F}
+.btn.primary:active:not(:disabled){box-shadow:0 1px 0 var(--paddle-ink);transform:translateY(2px)}
+.pitchbg .btn{border-color:var(--chalk);color:var(--chalk)}
+.pitchbg .btn:hover:not(:disabled){background:rgba(255,255,255,.14)}
+.pitchbg .btn.primary{border-color:var(--paddle-ink);color:var(--paddle-ink)}
+.pitchbg .btn.primary:hover:not(:disabled){background:#FFD54F}
+.btn.small{min-height:34px;padding:4px 10px;font-size:13px;border-width:1.5px}
+.btn.quiet{border-color:transparent;text-decoration:underline;text-underline-offset:3px;padding-inline:8px}
+input[type=text],input[type=number]{width:100%;min-height:44px;padding:8px 12px;border:2px solid var(--line);background:var(--surface);border-radius:6px}
+input:focus{border-color:var(--ink);outline:none}
+.pitchbg input{background:var(--chalk);color:var(--card-ink);border-color:var(--paddle-ink)}
+
+/* home */
+.hero{padding-block:28px 40px}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:40px;align-items:center}
+.mark{font-family:var(--display);font-weight:900;text-transform:uppercase;line-height:.9;display:flex;flex-direction:column}
+.mark span{display:block}
+.mark .m1{font-size:clamp(2rem,4.6vw,3.2rem);opacity:.75}
+.mark .m2{font-size:clamp(3rem,7.2vw,5.2rem);opacity:.88}
+.mark .m3{font-size:clamp(4rem,min(27vw,17vw + 2rem),12.5rem);color:var(--paddle);letter-spacing:-.005em;margin-top:.03em;transform-origin:left bottom;animation:strike .55s cubic-bezier(.2,1.5,.4,1) .15s both}
+@keyframes strike{from{transform:scale(1.28) rotate(-3deg);opacity:0}to{transform:none;opacity:1}}
+.pitch-lede{font-size:1.15rem;max-width:44ch;margin-top:18px;color:var(--chalk)}
+.start{margin-top:22px;display:grid;gap:12px;max-width:520px}
+.start-row{display:flex;gap:10px;flex-wrap:wrap}
+.start-row>*{flex:1 1 180px;min-width:0}
+.start label{display:block;margin-bottom:4px}
+.join{display:flex;gap:8px}
+.join input{flex:1;min-width:0;text-transform:uppercase;font-family:var(--data);letter-spacing:.14em}
+.note{font-size:13px;color:var(--chalkmute);min-height:1.2em}
+.hero-demo{position:relative;min-width:0}
+.demo-cap{display:flex;justify-content:space-between;gap:8px;margin-bottom:8px}
+.steps{padding-block:40px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px}
+.step h3{font-size:1.9rem;margin:6px 0 8px;text-transform:uppercase}
+.step .n{font:700 13px var(--data);color:var(--stamp)}
+.rules{border-top:2px solid var(--ink);padding-block:26px 40px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px}
+.rules h2{font-size:2rem;text-transform:uppercase;margin-bottom:10px}
+.rules ul{margin:0;padding-left:18px;display:grid;gap:6px;max-width:60ch}
+.foot{font-size:13px;color:var(--mute);padding-block:0 32px;max-width:90ch}
+
+/* player card */
+.card{position:relative;background:var(--card);color:var(--card-ink);border-radius:10px;padding:14px;border:1px solid var(--card-line);box-shadow:0 6px 0 rgba(0,0,0,.22);min-width:0}
+.card .label{color:var(--card-mute)}
+.card-top{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.card-tag{font:700 11px var(--data);letter-spacing:.08em;padding:2px 7px;border-radius:3px;background:var(--card-ink);color:var(--card)}
+.card-tag.leg{background:#A67C00;color:#FFF9E3}
+.card-main{display:flex;gap:14px;align-items:center;margin-top:10px}
+.roundel{flex:0 0 auto;width:76px;height:76px;border-radius:50%;display:grid;place-items:center;background:#17241B;color:var(--paddle);font:900 2.7rem/1 var(--display)}
+.card-id{min-width:0}
+.card-name{font-size:clamp(1.9rem,4vw,2.6rem);text-transform:uppercase;font-weight:900;line-height:.95;overflow-wrap:anywhere}
+.card-sub{color:var(--card-mute);font-size:14px;margin-top:6px}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 18px;margin-top:14px}
+.stat{display:grid;grid-template-columns:34px 26px minmax(0,1fr);align-items:center;gap:6px;font:600 12px var(--data)}
+.stat i{display:block;height:6px;background:var(--card-line);border-radius:3px;overflow:hidden}
+.stat i b{display:block;height:100%;background:#1E7A49}
+.stat i b.hi{background:#C9920E}
+.blindnote{margin-top:14px;padding:12px;background:#17241B;color:var(--paddle);font:600 13px var(--data);border-radius:6px;text-align:center}
+.stamp{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;overflow:hidden;border-radius:10px}
+.stamp div{padding:6px 18px 2px;border:6px solid var(--stamp);border-radius:8px;color:var(--stamp);font:900 clamp(3.2rem,9vw,5rem)/.95 var(--display);text-transform:uppercase;background:rgba(251,252,246,.88);transform:rotate(-8deg);animation:slam .28s cubic-bezier(.2,1.6,.4,1) both;text-align:center;max-width:92%;min-width:0}
+.stamp small{display:block;font:700 13px/1.5 var(--data);letter-spacing:.04em;text-transform:none;padding-bottom:6px;overflow-wrap:anywhere}
+.stamp.pass div{border-color:#5A6C60;color:#5A6C60}
+@keyframes slam{from{transform:rotate(-8deg) scale(2);opacity:0}to{transform:rotate(-8deg) scale(1);opacity:1}}
+
+/* top bar */
+.bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-block:10px}
+.brand{font:900 1.35rem/1 var(--display);text-transform:uppercase;letter-spacing:.01em}
+.brand em{font-style:normal;color:var(--stamp)}
+.bar .sp{flex:1}
+.rounds{display:flex;gap:4px;flex-wrap:wrap}
+.rounds span{font:600 11px var(--data);padding:4px 8px;border-radius:4px;border:1.5px solid var(--line);color:var(--mute)}
+.rounds span.on{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.rounds span.done{color:var(--good);border-color:var(--good)}
+
+/* lobby */
+.lobby-grid{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:18px;padding-block:6px 40px;align-items:start}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;min-width:0}
+.panel h2{font-size:1.7rem;text-transform:uppercase;margin-bottom:12px}
+.head{padding:22px 18px;border-radius:10px;margin-bottom:14px;display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;align-items:flex-end}
+.head h1{font-size:clamp(2.6rem,7vw,4.2rem);text-transform:uppercase;font-weight:900}
+.codebox{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.code{font:700 1.7rem/1 var(--data);letter-spacing:.14em;background:var(--chalk);color:var(--card-ink);padding:8px 12px;border-radius:6px}
+.mlist{display:grid;gap:6px;margin:0;padding:0;list-style:none}
+.mrow{display:flex;gap:10px;align-items:center;padding:7px 8px;border-radius:6px;background:var(--surface2);min-width:0}
+.mrow .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.paddle{flex:0 0 auto;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--paddle);color:var(--paddle-ink);font:800 13px var(--data);border:2px solid var(--paddle-ink)}
+.chip{flex:0 0 auto;font:700 10px var(--data);letter-spacing:.06em;padding:3px 6px;border-radius:3px;border:1.5px solid var(--line);color:var(--mute);text-transform:uppercase}
+.chip.you{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip.lead{background:var(--paddle);color:var(--paddle-ink);border-color:var(--paddle-ink)}
+.chip.ok{color:var(--good);border-color:var(--good)}
+.field{margin-bottom:14px}
+.field>.label{display:block;margin-bottom:6px}
+.seg{display:flex;flex-wrap:wrap;gap:4px}
+.seg button{min-height:38px;padding:5px 11px;border:1.5px solid var(--line);background:transparent;border-radius:5px;font-size:14px}
+.seg button:hover:not(:disabled){border-color:var(--ink)}
+.seg button.on{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:600}
+.seg button:disabled:not(.on){opacity:.5}
+.warn{color:var(--warn);font-size:13px;margin-top:6px}
+.hint{color:var(--mute);font-size:13px;margin-top:5px}
+.cta-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 18px}
+
+/* formation picker */
+.form-grid{grid-template-columns:minmax(0,1.6fr) minmax(0,.8fr)}
+.forms{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.fcard{padding:8px;border:2px solid var(--line);background:var(--surface);border-radius:8px;text-align:left;min-width:0}
+.fcard:hover{border-color:var(--ink)}
+.fcard.on{border-color:var(--paddle-ink);background:var(--paddle);color:var(--paddle-ink)}
+.fcard b{display:block;font:800 1.4rem/1.1 var(--display)}
+.fcard small{display:block;font:500 11px var(--data);margin-top:2px}
+.mini{position:relative;aspect-ratio:1/1.05;max-width:100%;border-radius:5px;margin-bottom:6px;overflow:hidden}
+.mini i{position:absolute;width:9%;aspect-ratio:1;border-radius:50%;background:var(--chalk);transform:translate(-50%,-50%)}
+.mini i.gk{background:var(--paddle)}
+
+/* auction */
+.auction{display:grid;grid-template-columns:232px minmax(0,1fr) 272px;gap:14px;padding-bottom:30px;align-items:start}
+.stage{border-radius:12px;padding:16px;min-width:0;display:grid;gap:12px}
+.lot-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:16px;align-items:stretch}
+.bidbox{display:flex;flex-direction:column;justify-content:center;min-width:0}
+.bidnum{font:900 clamp(4.6rem,11vw,7rem)/1 var(--display);color:var(--paddle);overflow-wrap:anywhere}
+.bidnum small{font-size:.32em;font-weight:800;margin-left:4px}
+.bump{animation:bump .22s ease-out}
+@keyframes bump{from{transform:scale(1.2)}to{transform:none}}
+.bidby{display:flex;gap:8px;align-items:center;min-height:32px;margin-top:6px;font-weight:600;min-width:0}
+.bidby span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.going{font:800 1.5rem/1 var(--display);text-transform:uppercase;min-height:1.6rem;margin-top:8px;color:var(--chalk);letter-spacing:.03em}
+.clock{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px}
+.fuse{height:12px;border-radius:6px;background:rgba(0,0,0,.28);overflow:hidden}
+.fuse div{height:100%;background:var(--paddle);width:100%;transform-origin:left}
+.fuse.low div{background:var(--stamp)}
+.secs{font:700 1.25rem var(--data);min-width:3.2ch;text-align:right}
+.ctl{display:grid;gap:8px}
+.quick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.quick .btn{min-height:58px;flex-direction:column;gap:0;line-height:1.1;padding:6px}
+.quick .btn b{font:900 1.6rem/1 var(--display)}
+.quick .btn small{font:600 11px var(--data)}
+.ctl-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px}
+.statusline{font-size:13px;color:var(--chalkmute);min-height:1.2em}
+.statusline b{color:var(--chalk)}
+.ctl-msg{padding:14px;background:rgba(0,0,0,.2);border-radius:8px;text-align:center;font-weight:600}
+.rail{display:grid;gap:6px;min-width:0}
+.rrow{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:2px 8px;align-items:center;padding:8px;background:var(--surface);border:1px solid var(--line);border-radius:8px}
+.rrow.lead{border-color:var(--paddle-ink);background:var(--paddle);color:var(--paddle-ink)}
+.rrow.lead .sub,.rrow.lead .label{color:var(--paddle-ink)}
+.rrow.me .nm::after{content:" (you)";font-weight:400;font-size:12px}
+.rrow.dim{opacity:.62}
+.rrow .nm{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
+.rrow .cr{font:700 14px var(--data)}
+.rrow .sub{grid-column:2/4;display:flex;justify-content:space-between;gap:6px;font:500 11px var(--data);color:var(--mute)}
+.side{display:grid;gap:12px;min-width:0}
+.side h3{font-size:1.3rem;text-transform:uppercase;margin-bottom:8px}
+.sales{display:grid;gap:5px;font-size:13px}
+.sale{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+.sale span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* tactical pitch */
+.tpitch{position:relative;width:100%;aspect-ratio:1/1.12;border-radius:8px;overflow:hidden}
+.tpitch svg{position:absolute;inset:0;width:100%;height:100%}
+.tok{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;width:21%;background:none;border:0;padding:0;color:var(--chalk);text-align:center}
+.tok .dot{width:clamp(30px,10vw,46px);height:clamp(30px,10vw,46px);border-radius:50%;display:grid;place-items:center;background:var(--chalk);color:var(--card-ink);font:800 14px var(--data);border:2px solid #17241B}
+.tok.empty .dot{background:rgba(255,255,255,.14);color:var(--chalk);border:2px dashed var(--chalk);font-size:10px}
+.tok.sel .dot{background:var(--paddle);box-shadow:0 0 0 3px var(--paddle-ink),0 0 0 5px var(--paddle)}
+.tok .tn{font:600 11px/1.15 var(--body);margin-top:2px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,.65)}
+.tok .fit{font:700 10px var(--data);color:#17241B;background:var(--paddle);padding:0 4px;border-radius:3px;margin-top:1px}
+.tok .fit.bad{background:var(--stamp);color:#fff}
+.tpitch.small .tok .dot{width:26px;height:26px;font-size:10px;border-width:1.5px}
+.tpitch.small .tok .tn{font-size:10px}
+.line-grid{display:grid;grid-template-columns:minmax(0,560px) minmax(0,1fr);gap:18px;padding-bottom:40px;align-items:start}
+.ovr-big{font:900 3.6rem/1 var(--display);color:var(--good)}
+.timerline{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.timerline .fuse{flex:1;background:var(--line)}
+
+/* match simulator */
+.speedbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;padding:10px 14px;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.speedbar .seg button{min-width:48px;font-family:var(--data);font-weight:700}
+.speedbar .sp{flex:1}
+.sim-live{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px;padding-bottom:40px;align-items:start}
+.viewer{display:grid;gap:12px;min-width:0}
+.simside{display:grid;gap:12px;min-width:0}
+.simside h3,.vgrid h3{font-size:1.3rem;text-transform:uppercase;margin-bottom:8px}
+.sb{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:12px;align-items:center;background:#17241B;color:var(--chalk);border-radius:10px;padding:10px 14px}
+.sbt{display:flex;align-items:center;gap:8px;font:800 clamp(.95rem,2.6vw,1.6rem)/1.05 var(--display);text-transform:uppercase;min-width:0;overflow-wrap:break-word}
+.sbt span{min-width:0}
+.sbt.aw{justify-content:flex-end;text-align:right}
+.kit{flex:0 0 auto;width:16px;height:16px;border-radius:50%;border:2px solid #F6FAF1}
+.kit.home{background:var(--paddle);border-color:var(--paddle)}
+.kit.away{background:#17241B}
+.sbc{text-align:center}
+.sbs{font:900 clamp(2.2rem,6vw,3.2rem)/1 var(--display);color:var(--paddle)}
+.sbm{font:700 13px var(--data);margin-top:2px}
+.pens{display:flex;align-items:center;justify-content:center;gap:5px;flex-wrap:wrap;margin-top:6px;font:700 13px var(--data)}
+.pen{width:11px;height:11px;border-radius:50%;background:var(--good)}
+.pen.off{background:var(--stamp)}
+.pen.aw{outline:2px solid var(--ink);outline-offset:1px}
+.canvwrap{position:relative;aspect-ratio:100/60;max-width:100%;border-radius:10px;overflow:hidden}
+#pitchcv{position:absolute;inset:0;width:100%;height:100%;display:block}
+.flash{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.35);pointer-events:none;text-align:center;padding:8px}
+.flash strong{font:900 clamp(3rem,10vw,6rem)/1 var(--display);color:var(--paddle);text-transform:uppercase;animation:slam2 .25s ease-out both}
+.flash span{font:800 clamp(1.1rem,3vw,1.8rem)/1.1 var(--display);color:#fff;text-transform:uppercase}
+@keyframes slam2{from{transform:scale(1.6);opacity:0}to{transform:none;opacity:1}}
+.vgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.srow{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;gap:2px 6px;align-items:center;margin-bottom:7px;font-size:13px}
+.srow .num:last-of-type{text-align:right}
+.slab{text-align:center;color:var(--mute);font-size:12px}
+.sbar{grid-column:1/-1;height:6px;background:var(--ink);border-radius:3px;overflow:hidden}
+.sbar i{display:block;height:100%;background:var(--paddle)}
+.comm{display:grid;gap:5px;font-size:13px}
+.cline{display:grid;grid-template-columns:30px minmax(0,1fr);gap:6px}
+.cline b.num{color:var(--mute);font-weight:600}
+.cline.g{background:var(--paddle);color:var(--paddle-ink);padding:3px 5px;border-radius:4px}
+.cline.g b.num{color:var(--paddle-ink)}
+.fix2{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:8px;align-items:center;width:100%;padding:7px 6px;background:transparent;border:0;border-bottom:1px solid var(--line);text-align:left;color:inherit}
+button.fix2:hover{background:var(--surface2)}
+.fix2.on{background:var(--surface2);box-shadow:inset 3px 0 0 var(--paddle)}
+.fix2.muted{opacity:.6}
+.fix2 .a{text-align:right}
+.fix2 .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;font-weight:500;font-size:14px}
+.fix2 .t.me{font-weight:800}
+.fix2 .score{font-size:1.15rem;min-width:48px;padding:3px 6px}
+
+/* tournament */
+.sim-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:18px;padding-bottom:40px;align-items:start}
+.fix{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:10px;align-items:center;padding:8px 2px;border-bottom:1px solid var(--line)}
+.fix:last-child{border-bottom:0}
+.fix .a{text-align:right}
+.fix .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;font-weight:500}
+.fix .t.me{font-weight:800}
+.score{font:900 1.5rem/1 var(--display);background:var(--ink);color:var(--bg);padding:4px 10px;border-radius:4px;min-width:62px;text-align:center}
+.scroll-x{overflow-x:auto}
+table.tbl{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.tbl th{font:600 11px var(--data);text-align:right;color:var(--mute);padding:4px 6px;border-bottom:2px solid var(--ink)}
+.tbl td{text-align:right;padding:6px;border-bottom:1px solid var(--line);font-family:var(--data);font-size:13px}
+.tbl .tn,.tbl th.tn{text-align:left;font-family:var(--body);font-weight:600;font-size:14px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tbl tr.me td{background:var(--surface2)}
+.tbl .pts{font-weight:800}
+.tbl tr.q td:first-child{box-shadow:inset 3px 0 0 var(--good)}
+.final{padding:22px 18px;border-radius:12px;text-align:center;margin-bottom:16px}
+.final h1{font-size:clamp(2.6rem,8vw,4.6rem);text-transform:uppercase;font-weight:900}
+.board{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:14px;align-items:center;margin-top:16px}
+.board .side-n{font:800 clamp(1.3rem,4vw,2.3rem)/1 var(--display);text-transform:uppercase;overflow-wrap:anywhere}
+.board .sc{font:900 clamp(3.8rem,13vw,7.4rem)/.9 var(--display);color:var(--paddle)}
+.minute{font:700 15px var(--data);margin-top:10px}
+.feed{display:grid;gap:6px;max-width:680px;margin:0 auto 16px}
+.goal{display:grid;grid-template-columns:40px minmax(0,1fr);gap:8px;padding:8px 10px;background:var(--surface);border:1px solid var(--line);border-radius:6px}
+.goal b{font-family:var(--data)}
+.champ{padding:30px 18px;border-radius:12px;margin-bottom:16px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,340px);gap:20px;align-items:center}
+.champ h1{font-size:clamp(3.2rem,11vw,7rem);text-transform:uppercase;font-weight:900;color:var(--paddle);overflow-wrap:anywhere;line-height:.9}
+.res-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;padding-bottom:30px;align-items:start}
+.awards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.award b{display:block;font:800 1.45rem/1.05 var(--display);text-transform:uppercase;margin:3px 0 2px;overflow-wrap:anywhere}
+.award small{color:var(--mute);font-size:13px}
+details.sq{border-top:1px solid var(--line);padding:8px 0}
+details.sq summary{cursor:pointer;font-weight:600;display:flex;justify-content:space-between;gap:8px}
+.sqlist{display:grid;gap:3px;margin-top:6px;font-size:13px}
+.sqlist div{display:grid;grid-template-columns:38px minmax(0,1fr) 30px 44px;gap:6px}
+.banner{padding-block:8px;background:var(--paddle);color:var(--paddle-ink);font-weight:600;font-size:14px;text-align:center;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.err{color:var(--stamp);font-weight:600;font-size:14px}
+
+@media (max-width:1040px){
+  .auction{grid-template-columns:minmax(0,1fr) 262px}
+  .rail{grid-column:1/-1;grid-row:2;display:flex;overflow-x:auto;padding-bottom:4px}
+  .rrow{flex:0 0 190px}
+}
+@media (max-width:760px){
+  .hero-grid,.lobby-grid,.form-grid,.line-grid,.sim-grid,.sim-live,.vgrid,.res-grid,.rules,.champ{grid-template-columns:minmax(0,1fr)}
+  .steps{grid-template-columns:minmax(0,1fr);gap:18px;padding-block:28px}
+  .auction{grid-template-columns:minmax(0,1fr)}
+  .rail{grid-row:auto;grid-column:auto;order:2}
+  .side{order:3}
+  .forms{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .lot-grid{grid-template-columns:minmax(0,1fr);gap:10px}
+  .stage{padding:10px}
+  .stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 10px}
+  .stat{grid-template-columns:30px minmax(0,1fr)}
+  .stat i{display:none}
+  .roundel{width:60px;height:60px;font-size:2.1rem}
+  .card{padding:10px}
+  .bidbox{display:grid;grid-template-columns:auto minmax(0,1fr);gap:0 12px;align-items:center}
+  .bidbox>.label{grid-column:1/-1}
+  .bidnum{font-size:4rem;grid-row:2/4}
+  .bidby{margin-top:0}
+  .going{margin-top:0;font-size:1.2rem;min-height:1.3rem}
+  .ctl{position:sticky;bottom:calc(env(safe-area-inset-bottom,0px) + 4px);z-index:3}
+  .two{grid-template-columns:minmax(0,1fr)}
+  .awards{grid-template-columns:minmax(0,1fr)}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body>
+<div id="banner" class="banner" role="status" hidden></div>
+<div id="app"></div>
+<script>// Live lobby connection for the web version. Gives the game the same room calls it uses elsewhere.
+window.GGG_WEB = true;
+window.GGG_ROOM = (() => {
+  class Channel {
+    constructor(name) {
+      this.name = name; this.mine = {}; this.others = new Map(); this.peerId = 'me'; this.subs = new Set(); this.conns = new Set();
+      this.isOpen = false; this.left = false; this.retry = 0; this.ws = null;
+    }
+    connect(onFirst, onFail) {
+      const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      let ws;
+      try { ws = new WebSocket(proto + '//' + location.host + '/ws'); } catch (e) { if (onFail) onFail(); return; }
+      this.ws = ws;
+      ws.onopen = () => ws.send(JSON.stringify({ t: 'join', room: this.name, presence: this.mine }));
+      ws.onmessage = ev => {
+        let m;
+        try { m = JSON.parse(ev.data); } catch (e) { return; }
+        if (m.t === 'welcome') {
+          this.peerId = m.peer; this.others = new Map(m.peers.map(p => [p.peer, p.presence]));
+          this.setOpen(true); this.retry = 0;
+          if (onFirst) { const f = onFirst; onFirst = null; onFail = null; f(this); }
+          this.fire();
+        } else if (m.t === 'peer') { this.others.set(m.peer, m.presence); this.fire(); } else if (m.t === 'left') { this.others.delete(m.peer); this.fire(); } else if (m.t === 'full' && onFail) { const f = onFail; onFirst = null; onFail = null; f(); }
+      };
+      ws.onclose = () => {
+        if (this.ws !== ws) return;
+        this.setOpen(false);
+        if (this.left) return;
+        if (onFail) { const f = onFail; onFirst = null; onFail = null; f(); return; }
+        this.retry++;
+        clearTimeout(this.timer);
+        this.timer = setTimeout(() => this.connect(), Math.min(5000, 400 * this.retry));
+      };
+      ws.onerror = () => { try { ws.close(); } catch (e) { /* closing anyway */ } };
+    }
+    setOpen(v) { if (this.isOpen !== v) { this.isOpen = v; this.conns.forEach(f => f(v)); } }
+    fire() { const ps = this.peers(); this.subs.forEach(f => f({ peers: ps, joined: [], left: [], updated: [] })); }
+    peers() {
+      const list = [{ peer: this.peerId, isMe: true, sameTab: true, presence: this.mine }];
+      this.others.forEach((presence, peer) => list.push({ peer, isMe: false, sameTab: false, presence }));
+      return list;
+    }
+    presence(patch) {
+      Object.keys(patch).forEach(k => { if (patch[k] === null) delete this.mine[k]; else this.mine[k] = patch[k]; });
+      if (this.isOpen && this.ws && this.ws.readyState === 1) this.ws.send(JSON.stringify({ t: 'p', patch }));
+      return Promise.resolve();
+    }
+    onPeers(f) { this.subs.add(f); setTimeout(() => { if (this.subs.has(f)) f({ peers: this.peers(), joined: [], left: [], updated: [] }); }, 0); return () => this.subs.delete(f); }
+    onConnection(f) { this.conns.add(f); setTimeout(() => { if (this.conns.has(f)) f(this.isOpen); }, 0); return () => this.conns.delete(f); }
+    connected() { return this.isOpen; }
+    leave() { this.left = true; clearTimeout(this.timer); clearInterval(this.pinger); document.removeEventListener('visibilitychange', this.onVis); if (this.ws) this.ws.close(); return Promise.resolve(); }
+  }
+  return {
+    join: name => new Promise((resolve, reject) => {
+      const ch = new Channel(name);
+      const limit = setTimeout(() => { ch.left = true; if (ch.ws) ch.ws.close(); reject({ code: 'upstream_error' }); }, 15000);
+      ch.connect(c => {
+        clearTimeout(limit);
+        // Phones drop connections in the background, so reconnect as soon as the game is visible again.
+        ch.onVis = () => { if (!document.hidden && !ch.isOpen && !ch.left) { clearTimeout(ch.timer); if (!ch.ws || ch.ws.readyState > 1) ch.connect(); } };
+        document.addEventListener('visibilitychange', ch.onVis);
+        ch.pinger = setInterval(() => { if (ch.ws && ch.ws.readyState === 1) ch.ws.send('{"t":"ping"}'); }, 25000);
+        resolve(c);
+      }, () => { clearTimeout(limit); reject({ code: 'upstream_error' }); });
+    }),
+  };
+})();
+
+// Format: Name|POS[/ALT...]|NATION|Club|League|OVR|attributes
+// Outfield attributes: pace shooting passing dribbling defending physical
+// Goalkeeper attributes: reflexes handling positioning kicking
+// All ratings are subjective and written for this game.
+const RAW_CURRENT = `
+Alisson Becker|GK|BRA|Liverpool|PL|88|88 86 88 82
+Gianluigi Donnarumma|GK|ITA|Man City|PL|88|91 80 82 72
+David Raya|GK|ESP|Arsenal|PL|87|86 83 86 88
+Emiliano Martínez|GK|ARG|Aston Villa|PL|85|87 81 83 76
+Jordan Pickford|GK|ENG|Everton|PL|84|86 78 81 86
+Giorgi Mamardashvili|GK|GEO|Liverpool|PL|82|85 78 79 70
+Guglielmo Vicario|GK|ITA|Tottenham|PL|82|85 78 80 72
+Nick Pope|GK|ENG|Newcastle|PL|81|83 79 81 70
+Dean Henderson|GK|ENG|Crystal Palace|PL|81|83 78 80 74
+Bart Verbruggen|GK|NED|Brighton|PL|81|82 76 80 84
+Matz Sels|GK|BEL|Nott'm Forest|PL|81|83 78 80 72
+Bernd Leno|GK|GER|Fulham|PL|81|82 80 80 78
+Robert Sánchez|GK|ESP|Chelsea|PL|79|81 74 77 78
+Senne Lammens|GK|BEL|Man Utd|PL|78|80 75 76 72
+Virgil van Dijk|CB|NED|Liverpool|PL|89|76 62 74 72 91 90
+William Saliba|CB|FRA|Arsenal|PL|88|84 40 74 74 89 85
+Gabriel Magalhães|CB|BRA|Arsenal|PL|88|76 58 66 62 89 90
+Rúben Dias|CB|POR|Man City|PL|87|64 40 68 62 88 86
+Joško Gvardiol|CB/LB|CRO|Man City|PL|86|80 60 74 76 85 84
+Cristian Romero|CB|ARG|Tottenham|PL|85|74 52 68 68 86 84
+Ibrahima Konaté|CB|FRA|Liverpool|PL|84|84 38 58 62 85 88
+Marc Guéhi|CB|ENG|Man City|PL|84|74 40 66 66 85 80
+Micky van de Ven|CB/LB|NED|Tottenham|PL|84|92 50 66 68 83 80
+Jurriën Timber|RB/CB|NED|Arsenal|PL|84|82 50 74 78 84 78
+Reece James|RB/CDM|ENG|Chelsea|PL|84|76 72 82 78 82 84
+Jeremie Frimpong|RB/RWB|NED|Liverpool|PL|83|93 72 76 84 68 66
+Daniel Muñoz|RWB/RB|COL|Crystal Palace|PL|83|82 66 74 74 80 84
+Marc Cucurella|LB|ESP|Chelsea|PL|82|76 44 72 74 82 78
+Riccardo Calafiori|LB/CB|ITA|Arsenal|PL|82|74 60 76 76 81 80
+Levi Colwill|CB/LB|ENG|Chelsea|PL|82|70 44 76 68 82 78
+Andy Robertson|LB|SCO|Liverpool|PL|82|78 56 80 74 78 72
+Matthijs de Ligt|CB|NED|Man Utd|PL|82|64 52 66 62 84 86
+Ezri Konsa|CB|ENG|Aston Villa|PL|82|76 40 64 66 83 78
+Pau Torres|CB|ESP|Aston Villa|PL|82|64 44 80 70 82 74
+Pedro Porro|RB|ESP|Tottenham|PL|82|80 70 82 80 74 70
+Murillo|CB|BRA|Nott'm Forest|PL|82|78 54 70 70 83 84
+Nathan Aké|CB/LB|NED|Man City|PL|81|70 46 70 72 82 74
+John Stones|CB|ENG|Man City|PL|81|66 40 76 72 82 74
+Jarrad Branthwaite|CB|ENG|Everton|PL|81|76 40 62 58 82 84
+Diogo Dalot|RB/LB|POR|Man Utd|PL|80|82 58 72 76 76 74
+Tino Livramento|RB/LB|ENG|Newcastle|PL|80|88 44 70 78 76 68
+Sven Botman|CB|NED|Newcastle|PL|80|62 34 62 58 82 82
+Antonee Robinson|LB|USA|Fulham|PL|80|90 42 72 72 76 72
+Maxence Lacroix|CB|FRA|Crystal Palace|PL|80|80 36 58 58 81 84
+Kieran Trippier|RB|ENG|Newcastle|PL|79|64 62 82 70 74 66
+Destiny Udogie|LB|ITA|Tottenham|PL|79|86 44 66 74 74 78
+Lucas Digne|LB|FRA|Aston Villa|PL|79|72 56 80 72 74 68
+Milos Kerkez|LB|HUN|Liverpool|PL|79|86 46 72 74 74 72
+Dan Burn|CB|ENG|Newcastle|PL|79|56 44 60 52 80 86
+Harry Maguire|CB|ENG|Man Utd|PL|78|50 52 66 56 80 84
+Luke Shaw|LB|ENG|Man Utd|PL|78|70 44 76 70 76 72
+Matty Cash|RB|POL|Aston Villa|PL|78|80 52 68 72 74 76
+James Tarkowski|CB|ENG|Everton|PL|78|50 46 62 50 80 82
+Neco Williams|RB/LB|WAL|Nott'm Forest|PL|78|76 52 68 72 74 72
+Lewis Dunk|CB|ENG|Brighton|PL|78|44 46 72 56 79 80
+Tyrick Mitchell|LB|ENG|Crystal Palace|PL|77|78 36 66 68 74 72
+Rodri|CDM/CM|ESP|Man City|PL|90|60 74 86 78 86 84
+Declan Rice|CM/CDM|ENG|Arsenal|PL|89|76 76 84 80 85 84
+Moisés Caicedo|CDM/CM|ECU|Chelsea|PL|88|76 62 78 78 88 82
+Bruno Fernandes|CAM/CM|POR|Man Utd|PL|88|72 84 90 82 66 74
+Florian Wirtz|CAM/LW|GER|Liverpool|PL|88|78 80 86 90 46 62
+Martin Ødegaard|CAM/CM|NOR|Arsenal|PL|87|72 78 90 88 58 62
+Cole Palmer|CAM/RW|ENG|Chelsea|PL|87|76 86 84 88 44 62
+Phil Foden|CAM/RW/LW|ENG|Man City|PL|86|80 82 84 90 54 60
+Ryan Gravenberch|CDM/CM|NED|Liverpool|PL|86|78 66 80 84 80 78
+Bruno Guimarães|CM/CDM|BRA|Newcastle|PL|86|68 72 84 82 78 80
+Enzo Fernández|CM/CDM|ARG|Chelsea|PL|85|64 74 84 78 76 76
+Alexis Mac Allister|CM/CAM|ARG|Liverpool|PL|85|66 78 84 80 76 72
+Dominik Szoboszlai|CM/CAM|HUN|Liverpool|PL|85|80 82 82 80 70 78
+Tijjani Reijnders|CM/CAM|NED|Man City|PL|85|76 78 82 84 66 72
+Martín Zubimendi|CDM|ESP|Arsenal|PL|85|62 62 82 76 82 76
+Eberechi Eze|CAM/LW|ENG|Arsenal|PL|85|80 80 80 88 42 66
+Sandro Tonali|CDM/CM|ITA|Newcastle|PL|85|72 72 82 76 82 78
+Rayan Cherki|CAM/RW|FRA|Man City|PL|84|76 78 84 90 36 58
+Morgan Gibbs-White|CAM|ENG|Nott'm Forest|PL|84|78 76 82 84 52 68
+Morgan Rogers|CAM/LW|ENG|Aston Villa|PL|84|82 78 76 84 48 82
+Elliot Anderson|CM/CDM|ENG|Nott'm Forest|PL|84|72 68 80 80 76 76
+James Maddison|CAM|ENG|Tottenham|PL|83|68 80 86 82 44 58
+Mikel Merino|CM|ESP|Arsenal|PL|83|60 76 76 74 74 82
+Xavi Simons|CAM/LW|NED|Tottenham|PL|83|82 76 80 86 42 60
+Youri Tielemans|CM|BEL|Aston Villa|PL|83|60 76 84 76 68 70
+Boubacar Kamara|CDM|FRA|Aston Villa|PL|83|64 50 76 72 83 78
+Granit Xhaka|CDM|SUI|Sunderland|PL|83|44 70 84 68 76 74
+Carlos Baleba|CDM|CMR|Brighton|PL|82|74 58 74 76 78 82
+Adam Wharton|CM/CDM|ENG|Crystal Palace|PL|82|62 58 84 76 72 66
+Joelinton|CM|BRA|Newcastle|PL|81|72 66 70 74 74 86
+John McGinn|CM|SCO|Aston Villa|PL|81|68 72 76 76 68 78
+Rodrigo Bentancur|CM|URU|Tottenham|PL|81|66 62 78 76 74 72
+Pape Matar Sarr|CM|SEN|Tottenham|PL|80|78 66 74 78 70 76
+Kobbie Mainoo|CM|ENG|Man Utd|PL|79|68 60 76 80 68 68
+Kiernan Dewsbury-Hall|CM|ENG|Everton|PL|79|72 70 76 76 62 68
+Tyler Adams|CDM|USA|Bournemouth|PL|79|70 44 70 70 80 72
+Mason Mount|CAM|ENG|Man Utd|PL|78|68 74 78 76 50 58
+Erling Haaland|ST|NOR|Man City|PL|91|88 95 66 80 42 90
+Mohamed Salah|RW|EGY|Liverpool|PL|89|86 88 82 88 44 72
+Bukayo Saka|RW|ENG|Arsenal|PL|88|84 82 84 88 52 66
+Alexander Isak|ST|SWE|Liverpool|PL|88|86 88 72 86 36 74
+Viktor Gyökeres|ST|SWE|Arsenal|PL|86|84 86 70 78 40 88
+Hugo Ekitike|ST|FRA|Liverpool|PL|85|86 82 68 84 32 72
+Antoine Semenyo|RW/LW|GHA|Man City|PL|84|88 82 70 80 42 82
+Bryan Mbeumo|RW/ST|CMR|Man Utd|PL|84|84 84 78 82 40 70
+Matheus Cunha|CF/LW|BRA|Man Utd|PL|84|78 82 78 86 40 76
+Cody Gakpo|LW/ST|NED|Liverpool|PL|84|82 82 76 82 38 76
+Omar Marmoush|ST/LW|EGY|Man City|PL|83|86 82 74 82 34 72
+Jérémy Doku|LW|BEL|Man City|PL|83|94 68 72 92 28 62
+João Pedro|ST/CF|BRA|Chelsea|PL|83|78 80 74 84 42 72
+Pedro Neto|RW/LW|POR|Chelsea|PL|83|92 74 78 84 36 62
+Kai Havertz|ST/CF|GER|Arsenal|PL|83|72 80 76 78 48 78
+Ollie Watkins|ST|ENG|Aston Villa|PL|83|84 82 66 76 40 76
+Jarrod Bowen|RW|ENG|West Ham|PL|83|84 80 76 80 46 70
+Leandro Trossard|LW|BEL|Arsenal|PL|82|78 80 78 84 40 62
+Gabriel Martinelli|LW|BRA|Arsenal|PL|82|90 76 70 84 44 68
+Savinho|RW|BRA|Man City|PL|82|90 70 74 88 32 56
+Benjamin Šeško|ST|SVN|Man Utd|PL|82|86 80 58 74 32 84
+Mohammed Kudus|RW|GHA|Tottenham|PL|82|84 76 72 88 44 78
+Anthony Gordon|LW|ENG|Newcastle|PL|82|88 76 72 84 44 62
+Estêvão|RW|BRA|Chelsea|PL|81|84 74 74 86 30 56
+Amad Diallo|RW|CIV|Man Utd|PL|81|84 74 76 86 44 56
+Nick Woltemade|ST|GER|Newcastle|PL|81|66 80 74 80 34 80
+Yoane Wissa|ST|COD|Newcastle|PL|81|84 80 66 80 36 72
+Jean-Philippe Mateta|ST|FRA|Crystal Palace|PL|81|72 82 60 72 34 86
+Kaoru Mitoma|LW|JPN|Brighton|PL|81|88 72 72 86 34 60
+Alejandro Garnacho|LW|ARG|Chelsea|PL|80|88 74 68 84 32 60
+Noni Madueke|RW|ENG|Arsenal|PL|80|86 72 70 84 34 62
+Dominic Solanke|ST|ENG|Tottenham|PL|80|74 78 66 74 36 76
+Harvey Barnes|LW|ENG|Newcastle|PL|80|86 78 68 80 32 62
+Jack Grealish|LW|ENG|Everton|PL|80|72 68 80 86 34 64
+Yéremy Pino|RW|ESP|Crystal Palace|PL|80|76 72 78 84 42 56
+Chris Wood|ST|NZL|Nott'm Forest|PL|80|58 82 58 62 32 86
+Iliman Ndiaye|LW|SEN|Everton|PL|80|82 74 70 84 36 66
+Ismaïla Sarr|RW|SEN|Crystal Palace|PL|80|90 74 66 78 32 68
+Callum Hudson-Odoi|LW|ENG|Nott'm Forest|PL|79|82 72 72 82 40 60
+Evanilson|ST|BRA|Bournemouth|PL|79|76 78 60 74 30 74
+Dan Ndoye|RW|SUI|Nott'm Forest|PL|79|90 70 68 80 38 66
+Federico Chiesa|RW|ITA|Liverpool|PL|78|84 76 72 82 32 62
+Thibaut Courtois|GK|BEL|Real Madrid|LL|90|92 86 90 74
+Jan Oblak|GK|SVN|Atlético Madrid|LL|87|89 86 88 68
+Joan García|GK|ESP|Barcelona|LL|85|87 80 82 80
+Unai Simón|GK|ESP|Athletic Club|LL|85|85 80 83 84
+Álex Remiro|GK|ESP|Real Sociedad|LL|83|84 80 82 72
+Luiz Júnior|GK|BRA|Villarreal|LL|79|81 74 76 72
+Paulo Gazzaniga|GK|ARG|Girona|LL|77|79 72 75 70
+Jules Koundé|RB/CB|FRA|Barcelona|LL|86|84 50 76 78 85 78
+Trent Alexander-Arnold|RB|ENG|Real Madrid|LL|85|74 72 92 80 70 68
+Éder Militão|CB|BRA|Real Madrid|LL|85|80 50 62 62 86 86
+Antonio Rüdiger|CB|GER|Real Madrid|LL|84|80 48 64 60 86 88
+Pau Cubarsí|CB|ESP|Barcelona|LL|84|70 38 82 74 83 72
+Ronald Araújo|CB|URU|Barcelona|LL|84|84 44 58 58 86 88
+Dean Huijsen|CB|ESP|Real Madrid|LL|83|72 50 80 72 82 80
+Alejandro Balde|LB|ESP|Barcelona|LL|83|92 46 74 82 74 66
+Dávid Hancko|CB/LB|SVK|Atlético Madrid|LL|83|74 52 74 70 82 78
+Marcos Llorente|RB/CM|ESP|Atlético Madrid|LL|83|84 70 74 78 74 82
+João Cancelo|RB/LB|POR|Barcelona|LL|82|80 62 84 84 74 68
+Álvaro Carreras|LB|ESP|Real Madrid|LL|82|84 54 76 78 78 74
+Dani Carvajal|RB|ESP|Real Madrid|LL|82|70 60 78 76 78 72
+José Giménez|CB|URU|Atlético Madrid|LL|81|66 44 56 54 83 84
+Robin Le Normand|CB|ESP|Atlético Madrid|LL|81|56 42 66 58 83 82
+Aymeric Laporte|CB|ESP|Athletic Club|LL|81|58 50 78 68 82 78
+Ferland Mendy|LB|FRA|Real Madrid|LL|80|88 40 68 76 78 80
+Eric García|CB/CDM|ESP|Barcelona|LL|80|60 46 76 70 78 70
+Dani Vivian|CB|ESP|Athletic Club|LL|80|72 38 58 56 81 80
+Renato Veiga|CB|POR|Villarreal|LL|80|72 48 68 66 79 80
+Juan Foyth|CB/RB|ARG|Villarreal|LL|79|74 40 66 68 79 74
+Igor Zubeldía|CB|ESP|Real Sociedad|LL|79|60 38 66 58 79 76
+Nahuel Molina|RB|ARG|Atlético Madrid|LL|79|82 60 72 74 70 70
+Matteo Ruggeri|LB|ITA|Atlético Madrid|LL|79|76 46 72 72 74 70
+Alfonso Pedraza|LB|ESP|Villarreal|LL|79|80 50 74 74 72 70
+Gerard Martín|LB|ESP|Barcelona|LL|78|76 40 68 68 75 72
+Yuri Berchiche|LB|ESP|Athletic Club|LL|77|72 46 72 70 73 72
+Pedri|CM/CAM|ESP|Barcelona|LL|90|72 72 90 90 68 62
+Jude Bellingham|CAM/CM|ENG|Real Madrid|LL|90|78 84 82 88 72 82
+Federico Valverde|CM/CDM/RB|URU|Real Madrid|LL|88|88 82 82 80 78 84
+Frenkie de Jong|CM/CDM|NED|Barcelona|LL|87|80 62 88 88 76 74
+Aurélien Tchouaméni|CDM|FRA|Real Madrid|LL|85|70 62 78 74 84 84
+Arda Güler|CAM/CM|TUR|Real Madrid|LL|85|70 78 86 86 44 56
+Dani Olmo|CAM/LW|ESP|Barcelona|LL|84|76 78 82 86 48 62
+Fermín López|CAM/CM|ESP|Barcelona|LL|84|76 80 78 80 58 68
+Eduardo Camavinga|CM/CDM/LB|FRA|Real Madrid|LL|83|78 58 76 80 78 76
+Gavi|CM|ESP|Barcelona|LL|83|70 62 80 82 72 68
+Àlex Baena|CAM/LW|ESP|Atlético Madrid|LL|83|74 76 86 82 50 60
+Oihan Sancet|CAM|ESP|Athletic Club|LL|82|70 78 76 82 44 72
+Isco|CAM|ESP|Real Betis|LL|82|54 74 84 86 44 56
+Brahim Díaz|CAM/RW|MAR|Real Madrid|LL|81|80 72 76 86 34 52
+Thiago Almada|CAM|ARG|Atlético Madrid|LL|81|78 76 80 84 40 56
+Pablo Barrios|CM|ESP|Atlético Madrid|LL|81|70 64 78 80 68 66
+Alberto Moleiro|CAM/LW|ESP|Villarreal|LL|81|74 72 80 84 38 54
+Thomas Partey|CDM|GHA|Villarreal|LL|80|64 66 76 72 78 78
+Koke|CM/CDM|ESP|Atlético Madrid|LL|80|50 64 82 72 72 66
+Giovani Lo Celso|CAM|ARG|Real Betis|LL|80|66 74 82 80 50 56
+Pape Gueye|CDM|SEN|Villarreal|LL|80|68 60 70 70 78 84
+Brais Méndez|CAM|ESP|Real Sociedad|LL|80|64 76 80 78 52 62
+Santi Comesaña|CM|ESP|Villarreal|LL|79|66 64 74 74 68 76
+Dani Ceballos|CM|ESP|Real Madrid|LL|79|62 66 82 82 60 58
+Marc Casadó|CDM|ESP|Barcelona|LL|79|60 54 78 72 74 64
+Johnny Cardoso|CDM|USA|Atlético Madrid|LL|79|64 56 72 72 78 78
+Mikel Jauregizar|CDM|ESP|Athletic Club|LL|79|60 58 76 74 74 72
+Javi Guerra|CM|ESP|Valencia|LL|79|68 72 74 76 62 68
+Kylian Mbappé|ST/LW|FRA|Real Madrid|LL|92|96 92 80 92 36 76
+Lamine Yamal|RW|ESP|Barcelona|LL|92|84 82 88 95 34 62
+Vinícius Júnior|LW|BRA|Real Madrid|LL|90|95 82 80 93 30 66
+Raphinha|LW/RW|BRA|Barcelona|LL|89|88 86 84 86 46 68
+Julián Álvarez|ST/CF|ARG|Atlético Madrid|LL|87|82 86 78 84 52 72
+Robert Lewandowski|ST|POL|Barcelona|LL|85|66 88 74 78 40 80
+Nico Williams|LW|ESP|Athletic Club|LL|85|92 74 76 88 36 62
+Rodrygo|RW/LW|BRA|Real Madrid|LL|84|88 80 78 88 30 58
+Ademola Lookman|LW/RW|NGA|Atlético Madrid|LL|84|86 80 74 86 34 58
+Mikel Oyarzabal|ST/LW|ESP|Real Sociedad|LL|83|70 82 80 80 42 68
+Antoine Griezmann|CF/ST|FRA|Atlético Madrid|LL|83|70 82 82 82 54 68
+Marcus Rashford|LW|ENG|Barcelona|LL|83|86 80 74 82 34 72
+Ferran Torres|ST/LW|ESP|Barcelona|LL|82|78 80 72 78 40 66
+Antony|RW|BRA|Real Betis|LL|82|82 74 74 86 34 58
+Alexander Sørloth|ST|NOR|Atlético Madrid|LL|81|70 82 58 68 30 88
+Takefusa Kubo|RW/CAM|JPN|Real Sociedad|LL|81|80 72 78 86 36 52
+Giuliano Simeone|RW|ARG|Atlético Madrid|LL|80|88 70 66 76 58 74
+Iñaki Williams|RW/ST|GHA|Athletic Club|LL|80|92 74 66 76 34 78
+Ayoze Pérez|ST/LW|ESP|Villarreal|LL|80|72 80 72 80 34 62
+Georges Mikautadze|ST|GEO|Villarreal|LL|80|76 80 64 78 32 66
+Ante Budimir|ST|CRO|Osasuna|LL|79|50 80 58 60 30 80
+Nicolas Pépé|RW|CIV|Villarreal|LL|79|82 74 72 82 28 60
+Vedat Muriqi|ST|KOS|Mallorca|LL|78|56 78 58 62 34 86
+Iago Aspas|CF|ESP|Celta Vigo|LL|78|58 80 80 78 30 56
+Hugo Duro|ST|ESP|Valencia|LL|78|70 76 60 70 40 72
+Franco Mastantuono|RW/CAM|ARG|Real Madrid|LL|78|74 72 76 82 34 56
+Gonzalo García|ST|ESP|Real Madrid|LL|77|72 76 62 72 28 68
+Mike Maignan|GK|FRA|AC Milan|SA|87|88 82 86 88
+Mile Svilar|GK|SRB|Roma|SA|86|88 82 83 72
+David de Gea|GK|ESP|Fiorentina|SA|85|89 78 82 66
+Yann Sommer|GK|SUI|Inter|SA|84|85 80 84 80
+Marco Carnesecchi|GK|ITA|Atalanta|SA|83|85 78 80 72
+Vanja Milinković-Savić|GK|SRB|Napoli|SA|82|84 76 78 80
+Michele Di Gregorio|GK|ITA|Juventus|SA|82|84 78 80 70
+Ivan Provedel|GK|ITA|Lazio|SA|80|81 76 78 78
+Jean Butez|GK|FRA|Como|SA|79|80 74 78 74
+Łukasz Skorupski|GK|POL|Bologna|SA|78|80 74 76 66
+Alessandro Bastoni|CB/LB|ITA|Inter|SA|87|72 50 82 74 87 80
+Federico Dimarco|LB/LWB|ITA|Inter|SA|86|78 74 86 78 72 66
+Gleison Bremer|CB|BRA|Juventus|SA|85|80 44 56 56 87 88
+Denzel Dumfries|RWB/RB|NED|Inter|SA|84|88 70 68 72 72 84
+Manuel Akanji|CB|SUI|Inter|SA|84|74 50 72 64 85 82
+Alessandro Buongiorno|CB|ITA|Napoli|SA|83|76 40 60 60 84 84
+Andrea Cambiaso|LB/RB|ITA|Juventus|SA|83|78 60 78 80 76 72
+Fikayo Tomori|CB|ENG|AC Milan|SA|82|88 36 62 62 82 78
+Strahinja Pavlović|CB|SRB|AC Milan|SA|82|72 56 60 56 83 88
+Amir Rrahmani|CB|KOS|Napoli|SA|82|60 46 62 54 83 82
+Giovanni Di Lorenzo|RB|ITA|Napoli|SA|82|72 56 74 72 80 76
+Evan Ndicka|CB|CIV|Roma|SA|82|76 36 62 60 83 80
+Sam Beukema|CB|NED|Napoli|SA|81|74 40 64 60 81 78
+Pierre Kalulu|CB/RB|FRA|Juventus|SA|81|84 38 62 66 80 76
+Gianluca Mancini|CB|ITA|Roma|SA|81|62 50 62 56 82 84
+Wesley|RB/RWB|BRA|Roma|SA|81|88 58 70 80 72 70
+Dodô|RB|BRA|Fiorentina|SA|81|86 44 72 82 76 64
+Isak Hien|CB|SWE|Atalanta|SA|80|78 34 58 56 81 82
+Giorgio Scalvini|CB|ITA|Atalanta|SA|80|70 42 70 66 79 76
+Matteo Gabbia|CB|ITA|AC Milan|SA|80|62 40 62 54 81 78
+Mathías Olivera|LB|URU|Napoli|SA|80|76 44 66 66 78 78
+Federico Gatti|CB|ITA|Juventus|SA|80|70 50 54 50 80 86
+Angeliño|LB|ESP|Roma|SA|80|76 56 80 78 72 64
+Alessio Romagnoli|CB|ITA|Lazio|SA|80|56 46 66 54 81 78
+Mario Gila|CB|ESP|Lazio|SA|80|76 34 54 54 81 80
+Jhon Lucumí|CB|COL|Bologna|SA|80|72 34 60 60 80 80
+Pervis Estupiñán|LB|ECU|AC Milan|SA|79|84 52 76 74 72 72
+Francesco Acerbi|CB|ITA|Inter|SA|79|50 44 62 50 82 78
+Robin Gosens|LWB|GER|Fiorentina|SA|79|76 66 68 68 70 80
+Nuno Tavares|LB|POR|Lazio|SA|78|88 54 70 76 66 74
+Davide Zappacosta|RWB|ITA|Atalanta|SA|78|80 56 70 72 72 72
+Lloyd Kelly|CB|ENG|Juventus|SA|78|72 34 62 58 78 78
+Kevin De Bruyne|CAM/CM|BEL|Napoli|SA|88|66 84 93 84 50 68
+Nicolò Barella|CM|ITA|Inter|SA|87|78 74 84 84 72 74
+Hakan Çalhanoğlu|CDM/CM|TUR|Inter|SA|86|60 82 88 78 70 70
+Luka Modrić|CM|CRO|AC Milan|SA|86|62 74 90 86 66 60
+Scott McTominay|CM/CAM|SCO|Napoli|SA|86|72 82 72 76 72 84
+Adrien Rabiot|CM|FRA|AC Milan|SA|84|72 74 78 78 72 80
+Stanislav Lobotka|CDM|SVK|Napoli|SA|84|62 54 84 82 76 68
+Nico Paz|CAM|ARG|Como|SA|84|72 78 84 86 42 62
+André-Frank Zambo Anguissa|CM|CMR|Napoli|SA|83|70 68 74 80 76 84
+Khéphren Thuram|CM|FRA|Juventus|SA|83|82 66 74 82 70 82
+Ederson|CM|BRA|Atalanta|SA|83|74 68 74 76 78 82
+Manu Koné|CM/CDM|FRA|Roma|SA|83|78 58 74 84 76 78
+Henrikh Mkhitaryan|CM/CAM|ARM|Inter|SA|82|66 74 82 78 62 62
+Manuel Locatelli|CDM|ITA|Juventus|SA|82|58 66 82 72 76 72
+Piotr Zieliński|CM|POL|Inter|SA|81|62 74 82 80 62 60
+Youssouf Fofana|CDM|FRA|AC Milan|SA|81|70 58 74 76 76 78
+Teun Koopmeiners|CM/CAM|NED|Juventus|SA|81|62 78 80 74 66 74
+Weston McKennie|CM/RB|USA|Juventus|SA|81|72 70 72 74 70 80
+Lewis Ferguson|CM|SCO|Bologna|SA|81|66 72 76 74 70 76
+Nicolò Rovella|CM/CDM|ITA|Lazio|SA|81|64 56 80 76 72 66
+Marten de Roon|CDM|NED|Atalanta|SA|80|56 56 74 66 78 76
+Mario Pašalić|CM/CAM|CRO|Atalanta|SA|80|60 76 74 72 62 76
+Albert Guðmundsson|CAM|ISL|Fiorentina|SA|80|76 76 76 82 36 60
+Davide Frattesi|CM|ITA|Inter|SA|79|76 72 70 72 64 70
+Samuele Ricci|CDM|ITA|AC Milan|SA|79|62 54 76 74 74 66
+Bryan Cristante|CDM|ITA|Roma|SA|79|52 66 74 64 74 80
+Lorenzo Pellegrini|CAM|ITA|Roma|SA|79|62 76 80 74 58 64
+Remo Freuler|CDM|SUI|Bologna|SA|79|60 58 74 68 76 74
+Rolando Mandragora|CM|ITA|Fiorentina|SA|79|56 72 74 66 72 76
+Ruben Loftus-Cheek|CM|ENG|AC Milan|SA|78|70 70 70 76 56 84
+Maxence Caqueret|CM|FRA|Como|SA|78|68 58 76 76 66 58
+Ardon Jashari|CM|SUI|AC Milan|SA|78|64 58 76 74 72 70
+Billy Gilmour|CM|SCO|Napoli|SA|78|60 54 78 76 70 58
+Lautaro Martínez|ST|ARG|Inter|SA|88|80 88 72 84 48 80
+Kenan Yıldız|LW/CAM|TUR|Juventus|SA|86|82 78 78 90 34 62
+Rafael Leão|LW|POR|AC Milan|SA|86|92 78 74 88 28 76
+Marcus Thuram|ST/LW|FRA|Inter|SA|85|86 80 72 80 34 84
+Christian Pulisic|RW/LW|USA|AC Milan|SA|85|84 82 78 86 38 62
+Charles De Ketelaere|CF/CAM|BEL|Atalanta|SA|83|72 78 80 82 44 72
+Dušan Vlahović|ST|SRB|Juventus|SA|83|72 84 60 72 32 84
+Paulo Dybala|CF/CAM|ARG|Roma|SA|83|72 84 84 88 30 56
+Riccardo Orsolini|RW|ITA|Bologna|SA|83|78 84 74 80 32 66
+Romelu Lukaku|ST|BEL|Napoli|SA|82|70 84 66 72 30 90
+Jonathan David|ST|CAN|Juventus|SA|82|84 82 70 80 38 62
+Moise Kean|ST|ITA|Fiorentina|SA|82|84 82 58 74 28 82
+Christopher Nkunku|CF/CAM|FRA|AC Milan|SA|81|80 78 76 84 40 60
+Rasmus Højlund|ST|DEN|Napoli|SA|81|86 78 60 72 30 80
+David Neres|RW|BRA|Napoli|SA|81|88 72 74 88 28 56
+Francisco Conceição|RW|POR|Juventus|SA|81|86 68 72 90 30 50
+Matías Soulé|RW|ARG|Roma|SA|81|76 74 76 86 36 52
+Mattia Zaccagni|LW|ITA|Lazio|SA|81|82 74 74 84 32 60
+Matteo Politano|RW|ITA|Napoli|SA|80|80 74 76 82 50 60
+Edon Zhegrova|RW|KOS|Juventus|SA|80|82 72 76 88 26 56
+Alexis Saelemaekers|RW|BEL|AC Milan|SA|80|80 66 72 78 66 70
+Santiago Giménez|ST|MEX|AC Milan|SA|79|72 80 58 68 32 76
+Gianluca Scamacca|ST|ITA|Atalanta|SA|79|64 80 62 70 28 82
+Nikola Krstović|ST|MNE|Atalanta|SA|79|70 78 60 68 36 80
+Artem Dovbyk|ST|UKR|Roma|SA|79|62 80 58 62 26 84
+Ange-Yoan Bonny|ST|FRA|Inter|SA|78|78 74 66 72 34 78
+Assane Diao|RW|ESP|Como|SA|78|88 72 62 82 26 58
+Santiago Castro|ST|ARG|Bologna|SA|78|76 76 60 72 32 74
+Jonathan Rowe|LW|ENG|Bologna|SA|78|84 70 66 78 34 62
+Álvaro Morata|ST|ESP|Como|SA|77|70 76 66 68 34 74
+Gregor Kobel|GK|SUI|Dortmund|BL|87|89 83 85 80
+Manuel Neuer|GK|GER|Bayern Munich|BL|85|85 82 88 88
+Alexander Nübel|GK|GER|Stuttgart|BL|83|84 78 81 74
+Oliver Baumann|GK|GER|Hoffenheim|BL|83|84 80 83 72
+Noah Atubolu|GK|GER|Freiburg|BL|81|83 76 78 74
+Péter Gulácsi|GK|HUN|RB Leipzig|BL|80|81 78 80 68
+Mark Flekken|GK|NED|Leverkusen|BL|79|80 74 78 80
+Jonas Urbig|GK|GER|Bayern Munich|BL|78|81 74 74 70
+Kauã Santos|GK|BRA|Frankfurt|BL|77|80 72 74 68
+Nico Schlotterbeck|CB|GER|Dortmund|BL|86|76 54 76 68 87 84
+Alejandro Grimaldo|LB/LWB|ESP|Leverkusen|BL|86|80 76 86 82 70 62
+Dayot Upamecano|CB|FRA|Bayern Munich|BL|85|84 40 64 66 86 86
+Jonathan Tah|CB|GER|Bayern Munich|BL|85|72 44 68 58 86 86
+Alphonso Davies|LB|CAN|Bayern Munich|BL|83|95 56 74 84 72 74
+Edmond Tapsoba|CB|BFA|Leverkusen|BL|83|76 42 72 68 83 80
+David Raum|LB|GER|RB Leipzig|BL|82|84 54 80 76 72 66
+Castello Lukeba|CB|FRA|RB Leipzig|BL|82|78 34 68 66 82 74
+Nathaniel Brown|LB|GER|Frankfurt|BL|82|88 54 74 78 74 74
+Kim Min-jae|CB|KOR|Bayern Munich|BL|82|82 34 60 60 83 86
+Josip Stanišić|RB/CB|CRO|Bayern Munich|BL|81|74 52 70 68 79 78
+Konrad Laimer|RB/CM|AUT|Bayern Munich|BL|81|84 58 72 76 76 78
+Waldemar Anton|CB|GER|Dortmund|BL|81|64 42 66 58 82 80
+Julian Ryerson|RB|NOR|Dortmund|BL|81|78 52 72 72 78 78
+Maximilian Mittelstädt|LB|GER|Stuttgart|BL|81|76 60 78 74 74 68
+Willi Orbán|CB|HUN|RB Leipzig|BL|80|56 50 64 52 81 82
+Loïc Badé|CB|FRA|Leverkusen|BL|80|78 34 58 58 81 80
+Hiroki Ito|CB/LB|JPN|Bayern Munich|BL|79|68 46 70 60 79 78
+Ramy Bensebaini|LB|ALG|Dortmund|BL|79|68 58 68 66 76 80
+Robin Koch|CB|GER|Frankfurt|BL|79|60 44 66 56 79 78
+Jeff Chabot|CB|GER|Stuttgart|BL|79|62 46 62 52 79 82
+Matthias Ginter|CB|GER|Freiburg|BL|79|56 48 68 56 79 76
+Ridle Baku|RB|GER|RB Leipzig|BL|78|82 56 70 74 72 72
+Jarell Quansah|CB|ENG|Leverkusen|BL|78|70 38 62 58 78 78
+Philipp Lienhart|CB|AUT|Freiburg|BL|78|58 40 60 52 79 76
+Joe Scally|RB|USA|Gladbach|BL|78|78 40 64 66 75 76
+Joshua Kimmich|CDM/RB|GER|Bayern Munich|BL|88|68 72 90 80 80 72
+Jamal Musiala|CAM/LW|GER|Bayern Munich|BL|88|80 78 80 93 46 62
+Aleksandar Pavlović|CDM|GER|Bayern Munich|BL|84|64 60 82 78 78 74
+Angelo Stiller|CDM/CM|GER|Stuttgart|BL|84|62 66 86 78 74 68
+Felix Nmecha|CM|GER|Dortmund|BL|82|74 72 76 82 70 74
+Exequiel Palacios|CM|ARG|Leverkusen|BL|81|66 66 80 78 74 70
+Malik Tillman|CAM|USA|Leverkusen|BL|81|74 74 76 82 48 72
+Julian Brandt|CAM|GER|Dortmund|BL|81|70 76 84 82 40 60
+Christoph Baumgartner|CAM|AUT|RB Leipzig|BL|81|74 76 76 78 56 70
+Hugo Larsson|CM|SWE|Frankfurt|BL|81|76 68 76 80 66 72
+Leon Goretzka|CM|GER|Bayern Munich|BL|80|72 76 76 74 70 84
+Aleix García|CM|ESP|Leverkusen|BL|80|56 66 84 76 66 62
+Can Uzun|CAM|TUR|Frankfurt|BL|80|72 78 76 80 34 64
+Xaver Schlager|CDM|AUT|RB Leipzig|BL|80|66 60 74 72 78 76
+Nadiem Amiri|CAM|GER|Mainz|BL|80|72 74 80 80 58 62
+Kaishu Sano|CDM|JPN|Mainz|BL|80|72 48 68 74 78 72
+Marcel Sabitzer|CM|AUT|Dortmund|BL|79|66 76 76 74 64 72
+Jobe Bellingham|CM|ENG|Dortmund|BL|79|68 70 74 78 62 72
+Nicolas Seiwald|CDM|AUT|RB Leipzig|BL|79|68 52 72 70 76 74
+Ezequiel Fernández|CM|ARG|Leverkusen|BL|79|68 60 74 76 74 72
+Maximilian Eggestein|CM|GER|Freiburg|BL|79|58 62 76 68 72 70
+Rocco Reitz|CM|GER|Gladbach|BL|79|64 62 72 72 74 74
+Bilal El Khannouss|CAM|MAR|Stuttgart|BL|79|70 72 78 82 42 58
+Emre Can|CDM|GER|Dortmund|BL|78|58 66 72 62 78 82
+Tom Bischof|CM|GER|Bayern Munich|BL|78|64 68 80 76 54 60
+Johan Manzambi|CM|SUI|Freiburg|BL|78|72 70 72 76 62 72
+Harry Kane|ST|ENG|Bayern Munich|BL|90|66 93 84 80 46 82
+Michael Olise|RW|FRA|Bayern Munich|BL|89|82 82 88 90 34 60
+Luis Díaz|LW|COL|Bayern Munich|BL|86|88 80 76 88 42 70
+Serhou Guirassy|ST|GUI|Dortmund|BL|85|76 86 64 76 36 86
+Patrik Schick|ST|CZE|Leverkusen|BL|83|68 84 64 72 30 80
+Deniz Undav|ST|GER|Stuttgart|BL|83|68 84 70 74 36 78
+Serge Gnabry|RW/CAM|GER|Bayern Munich|BL|82|82 80 76 84 34 66
+Karim Adeyemi|LW/RW|GER|Dortmund|BL|81|95 74 66 82 28 62
+Maximilian Beier|ST/RW|GER|Dortmund|BL|81|90 76 64 74 42 72
+Yan Diomande|RW|CIV|RB Leipzig|BL|81|90 72 70 86 32 58
+Jonathan Burkardt|ST|GER|Frankfurt|BL|81|78 80 66 74 40 72
+Nicolas Jackson|ST|SEN|Bayern Munich|BL|80|86 76 64 76 34 74
+Antonio Nusa|LW|NOR|RB Leipzig|BL|80|90 68 68 84 28 54
+Ritsu Dōan|RW|JPN|Frankfurt|BL|80|78 76 74 80 52 60
+Jamie Leweling|LW|GER|Stuttgart|BL|80|88 72 70 78 42 74
+Rômulo|ST|BRA|RB Leipzig|BL|79|76 78 62 72 30 76
+Johan Bakayoko|RW|BEL|RB Leipzig|BL|79|84 70 70 84 28 56
+Chris Führich|LW|GER|Stuttgart|BL|79|82 72 74 82 34 58
+Ermedin Demirović|ST|BIH|Stuttgart|BL|79|70 78 66 72 40 76
+Christian Kofane|ST|CMR|Leverkusen|BL|77|82 72 56 70 28 74
+Haris Tabaković|ST|BIH|Gladbach|BL|77|62 76 56 62 28 80
+Lucas Chevalier|GK|FRA|Paris SG|L1|83|85 78 81 82
+Gerónimo Rulli|GK|ARG|Marseille|L1|83|84 80 82 72
+Matvey Safonov|GK|RUS|Paris SG|L1|82|84 78 79 74
+Brice Samba|GK|FRA|Rennes|L1|81|83 78 79 74
+Lukáš Hrádecký|GK|FIN|Monaco|L1|80|81 78 80 76
+Dominik Greif|GK|SVK|Lyon|L1|78|80 74 76 68
+Berke Özer|GK|TUR|Lille|L1|77|79 72 74 72
+Robin Risser|GK|FRA|Lens|L1|76|79 70 73 70
+Achraf Hakimi|RB|MAR|Paris SG|L1|88|94 76 80 84 76 78
+Nuno Mendes|LB|POR|Paris SG|L1|87|93 62 78 86 80 80
+Marquinhos|CB|BRA|Paris SG|L1|85|72 50 72 68 86 76
+Willian Pacho|CB|ECU|Paris SG|L1|85|80 36 66 62 86 84
+Illia Zabarnyi|CB|UKR|Paris SG|L1|81|76 40 62 60 82 80
+Facundo Medina|CB/LB|ARG|Marseille|L1|81|72 42 68 66 82 78
+Moussa Niakhaté|CB|SEN|Lyon|L1|81|76 40 60 58 81 82
+Lucas Hernández|CB/LB|FRA|Paris SG|L1|80|76 44 64 64 81 80
+Nayef Aguerd|CB|MAR|Marseille|L1|80|66 50 66 58 81 80
+Benjamin Pavard|CB/RB|FRA|Marseille|L1|80|66 56 68 62 80 76
+Lucas Beraldo|CB|BRA|Paris SG|L1|79|66 40 72 66 78 74
+Thilo Kehrer|CB|GER|Monaco|L1|78|76 40 62 60 77 78
+Chancel Mbemba|CB|COD|Lille|L1|78|76 40 54 56 78 84
+Caio Henrique|LB|BRA|Monaco|L1|78|80 50 74 72 72 66
+Nicolás Tagliafico|LB|ARG|Lyon|L1|78|70 44 68 68 76 72
+Jonathan Clauss|RB|FRA|Nice|L1|77|80 60 76 72 68 68
+Thomas Meunier|RB|BEL|Lille|L1|76|70 54 72 66 72 76
+Romain Perraud|LB|FRA|Lille|L1|76|78 48 70 68 72 66
+Vitinha|CM|POR|Paris SG|L1|90|72 76 92 90 74 66
+João Neves|CM|POR|Paris SG|L1|87|76 68 86 86 80 70
+Fabián Ruiz|CM|ESP|Paris SG|L1|85|64 74 86 82 72 72
+Warren Zaïre-Emery|CM/RB|FRA|Paris SG|L1|83|78 68 78 82 72 74
+Pierre-Emile Højbjerg|CDM|DEN|Marseille|L1|82|56 66 78 70 78 78
+Denis Zakaria|CDM|SUI|Monaco|L1|81|72 58 68 68 78 84
+Lamine Camara|CM|SEN|Monaco|L1|81|76 66 74 78 70 72
+Maghnes Akliouche|CAM/RW|FRA|Monaco|L1|81|76 72 78 84 40 56
+Lee Kang-in|CAM/RW|KOR|Paris SG|L1|80|72 72 82 84 44 50
+Aleksandr Golovin|CAM|RUS|Monaco|L1|80|72 72 82 82 48 58
+Corentin Tolisso|CM|FRA|Lyon|L1|80|62 72 76 74 68 72
+Matt O'Riley|CM|DEN|Marseille|L1|79|64 72 78 76 58 64
+Takumi Minamino|CAM|JPN|Monaco|L1|79|74 76 74 78 50 56
+Geoffrey Kondogbia|CDM|CAF|Marseille|L1|78|60 52 70 66 76 84
+Tanner Tessmann|CM|USA|Lyon|L1|78|68 60 70 70 72 80
+Adrien Thomasson|CM|FRA|Lens|L1|78|66 68 74 74 64 62
+Arthur Vermeeren|CM|BEL|Marseille|L1|77|66 58 76 76 68 64
+Senny Mayulu|CM|FRA|Paris SG|L1|77|76 68 72 78 58 70
+Paul Pogba|CM|FRA|Monaco|L1|76|60 72 80 76 56 76
+Ousmane Dembélé|RW/ST|FRA|Paris SG|L1|91|94 86 84 94 34 62
+Khvicha Kvaratskhelia|LW|GEO|Paris SG|L1|88|86 80 82 92 36 68
+Désiré Doué|RW/CAM|FRA|Paris SG|L1|86|84 78 80 90 44 72
+Bradley Barcola|LW|FRA|Paris SG|L1|85|92 78 72 86 32 62
+Mason Greenwood|RW|ENG|Marseille|L1|84|80 86 80 84 30 66
+Gonçalo Ramos|ST|POR|Paris SG|L1|83|76 84 62 74 42 76
+Pierre-Emerick Aubameyang|ST|GAB|Marseille|L1|80|80 80 66 74 30 68
+Folarin Balogun|ST|USA|Monaco|L1|80|84 78 60 72 30 68
+Igor Paixão|LW|BRA|Marseille|L1|79|84 72 72 84 30 56
+Amine Gouiri|ST|ALG|Marseille|L1|79|72 78 72 80 32 62
+Malick Fofana|LW|BEL|Lyon|L1|79|88 70 70 84 28 56
+Esteban Lepaul|ST|FRA|Rennes|L1|78|74 78 60 68 30 74
+Joaquín Panichelli|ST|ARG|Strasbourg|L1|78|76 78 58 68 34 76
+Emanuel Emegha|ST|NED|Strasbourg|L1|78|82 74 56 68 30 82
+Bazoumana Touré|RW|CIV|Lyon|L1|77|88 68 66 80 26 56
+Ansu Fati|LW|ESP|Monaco|L1|77|78 76 68 80 26 54
+Olivier Giroud|ST|FRA|Lille|L1|76|40 78 70 68 38 76
+Ibrahim Mbaye|RW|SEN|Paris SG|L1|75|88 64 62 80 26 52
+Yassine Bounou|GK|MAR|Al Hilal|OT|85|88 80 82 76
+Ederson Moraes|GK|BRA|Fenerbahçe|OT|85|83 80 84 92
+Diogo Costa|GK|POR|Porto|OT|85|87 80 82 82
+Anatoliy Trubin|GK|UKR|Benfica|OT|84|86 78 80 76
+Édouard Mendy|GK|SEN|Al Ahli|OT|81|83 76 79 68
+Theo Hernández|LB|FRA|Al Hilal|OT|84|92 70 76 82 76 80
+Gonçalo Inácio|CB|POR|Sporting CP|OT|83|72 50 78 68 83 78
+Kalidou Koulibaly|CB|SEN|Al Hilal|OT|82|66 40 64 58 84 88
+Milan Škriniar|CB|SVK|Fenerbahçe|OT|81|62 40 62 54 83 82
+Nicolás Otamendi|CB|ARG|Benfica|OT|80|52 48 66 56 81 80
+António Silva|CB|POR|Benfica|OT|80|72 40 66 60 80 78
+Merih Demiral|CB|TUR|Al Ahli|OT|79|66 48 56 52 80 84
+Giorgian de Arrascaeta|CAM|URU|Flamengo|OT|83|72 78 84 86 44 58
+Morten Hjulmand|CDM|DEN|Sporting CP|OT|83|62 60 76 70 82 80
+Sergej Milinković-Savić|CM|SRB|Al Hilal|OT|83|56 80 80 76 68 86
+Rúben Neves|CM|POR|Al Hilal|OT|83|56 78 86 74 70 68
+Ilkay Gündoğan|CM|GER|Galatasaray|OT|82|56 74 84 80 62 62
+Rodrigo De Paul|CM|ARG|Inter Miami|OT|82|72 72 82 80 68 74
+Alan Varela|CDM|ARG|Porto|OT|81|60 56 78 72 78 72
+Orkun Kökçü|CM|TUR|Beşiktaş|OT|81|68 74 80 80 62 64
+Joey Veerman|CM|NED|PSV|OT|81|58 68 86 76 58 64
+N'Golo Kanté|CDM|FRA|Al Ittihad|OT|80|66 56 72 74 80 72
+Jorginho|CDM|ITA|Flamengo|OT|80|40 56 84 72 68 58
+Thomas Müller|CAM|GER|Vancouver|OT|78|56 74 78 72 48 62
+Lionel Messi|CF/RW|ARG|Inter Miami|OT|88|64 86 92 90 30 60
+Victor Osimhen|ST|NGA|Galatasaray|OT|87|88 86 56 78 34 82
+Cristiano Ronaldo|ST|POR|Al Nassr|OT|85|72 90 72 76 30 76
+Karim Benzema|ST|FRA|Al Hilal|OT|84|62 86 80 82 36 74
+Son Heung-min|LW/ST|KOR|LAFC|OT|84|82 84 76 82 36 66
+Ivan Toney|ST|ENG|Al Ahli|OT|84|68 86 68 72 34 82
+Leroy Sané|RW|GER|Galatasaray|OT|83|88 78 76 84 32 66
+Riyad Mahrez|RW|ALG|Al Ahli|OT|83|72 78 82 86 30 54
+Vangelis Pavlidis|ST|GRE|Benfica|OT|83|72 82 72 76 40 74
+Francisco Trincão|RW|POR|Sporting CP|OT|83|78 78 80 84 34 58
+Neymar|LW/CAM|BRA|Santos|OT|82|68 78 82 86 28 54
+Sadio Mané|LW|SEN|Al Nassr|OT|82|80 80 72 82 40 70
+Samu Aghehowa|ST|ESP|Porto|OT|82|72 82 56 68 30 88
+Mateo Retegui|ST|ITA|Al Qadsiah|OT|81|72 82 58 70 34 78
+Memphis Depay|ST|NED|Corinthians|OT|81|74 80 76 84 30 72
+Pedro|ST|BRA|Flamengo|OT|81|68 84 66 76 28 72
+Ángel Di María|RW|ARG|Rosario Central|OT|80|70 76 84 82 34 54
+João Félix|CF|POR|Al Nassr|OT|80|76 76 76 84 32 58
+Kaio Jorge|ST|BRA|Cruzeiro|OT|80|76 80 62 76 30 72
+Luis Suárez|ST|URU|Inter Miami|OT|78|50 82 70 72 34 70
+`;
+const RAW_LEGENDS = `
+Gianluigi Buffon|GK|ITA|Juventus|SA|94|95 90 94 72
+Lev Yashin|GK|URS|Dynamo Moscow|OT|93|95 90 93 68
+Iker Casillas|GK|ESP|Real Madrid|LL|92|96 84 88 66
+Oliver Kahn|GK|GER|Bayern Munich|BL|92|94 88 90 62
+Peter Schmeichel|GK|DEN|Man Utd|PL|92|94 88 90 78
+Dino Zoff|GK|ITA|Juventus|SA|91|91 90 92 64
+Gordon Banks|GK|ENG|Stoke City|PL|90|93 86 90 62
+Edwin van der Sar|GK|NED|Man Utd|PL|90|88 88 92 88
+Petr Čech|GK|CZE|Chelsea|PL|89|90 86 90 68
+Sepp Maier|GK|GER|Bayern Munich|BL|89|91 86 88 64
+Fabien Barthez|GK|FRA|Monaco|L1|87|90 78 84 78
+Bernard Lama|GK|FRA|Paris SG|L1|84|86 78 82 72
+Paolo Maldini|LB/CB|ITA|AC Milan|SA|95|84 56 78 76 96 86
+Franz Beckenbauer|CB/CDM|GER|Bayern Munich|BL|95|78 70 92 86 94 80
+Franco Baresi|CB|ITA|AC Milan|SA|94|74 54 80 72 96 80
+Cafu|RB|BRA|Roma|SA|92|92 66 82 84 84 82
+Roberto Carlos|LB|BRA|Real Madrid|LL|92|95 82 82 84 82 84
+Carlos Alberto|RB|BRA|Santos|OT|92|84 72 84 82 88 80
+Bobby Moore|CB|ENG|West Ham|PL|92|66 56 84 70 94 78
+Sergio Ramos|CB/RB|ESP|Real Madrid|LL|91|80 72 76 74 92 86
+Fabio Cannavaro|CB|ITA|Juventus|SA|91|78 42 66 66 94 82
+Alessandro Nesta|CB|ITA|AC Milan|SA|91|78 42 72 72 95 80
+Philipp Lahm|RB/LB/CDM|GER|Bayern Munich|BL|91|80 58 86 84 90 68
+Giacinto Facchetti|LB|ITA|Inter|SA|91|84 68 78 76 90 82
+Nilton Santos|LB|BRA|Botafogo|OT|90|84 60 80 84 88 76
+Dani Alves|RB|BRA|Barcelona|LL|90|88 68 86 86 78 72
+Carles Puyol|CB|ESP|Barcelona|LL|90|74 48 62 62 92 86
+John Terry|CB|ENG|Chelsea|PL|89|56 58 68 58 92 86
+Rio Ferdinand|CB|ENG|Man Utd|PL|89|82 44 76 74 91 80
+Marcelo|LB|BRA|Real Madrid|LL|89|82 68 84 90 74 72
+Javier Zanetti|RB/CM|ARG|Inter|SA|89|80 58 80 80 86 84
+Lilian Thuram|RB/CB|FRA|Juventus|SA|89|84 46 66 70 91 86
+Marcel Desailly|CB/CDM|FRA|AC Milan|SA|89|76 48 68 66 90 90
+Daniel Passarella|CB|ARG|River Plate|OT|89|68 76 74 66 91 80
+Ronald Koeman|CB|NED|Barcelona|LL|88|56 88 88 68 82 78
+Gerard Piqué|CB|ESP|Barcelona|LL|88|60 58 80 70 89 82
+Nemanja Vidić|CB|SRB|Man Utd|PL|88|64 50 58 54 91 88
+Ashley Cole|LB|ENG|Chelsea|PL|88|86 44 76 80 88 72
+Matthias Sammer|CB|GER|Dortmund|BL|88|76 70 80 76 88 74
+Giorgio Chiellini|CB|ITA|Juventus|SA|87|66 44 58 54 91 88
+Vincent Kompany|CB|BEL|Man City|PL|87|70 50 68 66 89 86
+Laurent Blanc|CB|FRA|Marseille|L1|87|56 66 78 70 88 76
+Thiago Silva|CB|BRA|Paris SG|L1|87|70 46 76 72 90 78
+Marius Trésor|CB|FRA|Marseille|L1|87|72 56 72 70 88 82
+Diego Maradona|CAM|ARG|Napoli|SA|97|88 92 94 99 40 72
+Johan Cruyff|CAM/CF|NED|Barcelona|LL|96|90 90 94 96 44 68
+Zinedine Zidane|CAM/CM|FRA|Real Madrid|LL|96|74 84 94 96 58 80
+Ronaldinho|CAM/LW|BRA|Barcelona|LL|94|84 84 90 97 36 74
+Michel Platini|CAM|FRA|Juventus|SA|94|72 92 94 90 48 66
+Xavi|CM|ESP|Barcelona|LL|93|64 72 97 88 66 58
+Andrés Iniesta|CM/CAM|ESP|Barcelona|LL|93|74 72 92 95 62 60
+Lothar Matthäus|CM/CDM|GER|Inter|BL|93|80 86 86 84 86 84
+Zico|CAM|BRA|Flamengo|OT|93|78 92 92 92 36 62
+Bobby Charlton|CAM/CM|ENG|Man Utd|PL|92|78 92 86 84 50 70
+Ruud Gullit|CM/CF|NED|AC Milan|SA|92|84 84 84 84 76 90
+Kaká|CAM|BRA|AC Milan|SA|91|88 84 86 90 42 70
+Andrea Pirlo|CDM/CM|ITA|Juventus|SA|91|56 78 96 84 66 58
+Francesco Totti|CAM/CF|ITA|Roma|SA|91|70 88 90 86 44 72
+Steven Gerrard|CM|ENG|Liverpool|PL|90|78 88 88 80 76 84
+Patrick Vieira|CDM/CM|FRA|Arsenal|PL|90|74 68 78 78 88 90
+Toni Kroos|CM|GER|Real Madrid|LL|90|52 80 96 82 68 68
+Michael Laudrup|CAM|DEN|Barcelona|LL|90|80 78 92 92 40 62
+Sócrates|CM|BRA|Corinthians|OT|90|66 84 90 84 54 72
+Raymond Kopa|CAM|FRA|Reims|L1|90|80 80 86 90 40 58
+Frank Rijkaard|CDM|NED|AC Milan|SA|90|72 68 80 76 90 86
+Frank Lampard|CM|ENG|Chelsea|PL|89|68 88 86 78 66 76
+Paul Scholes|CM|ENG|Man Utd|PL|89|60 84 92 82 62 66
+Roy Keane|CDM/CM|IRL|Man Utd|PL|89|72 68 80 72 88 84
+Sergio Busquets|CDM|ESP|Barcelona|LL|89|48 56 88 78 86 72
+Juan Román Riquelme|CAM|ARG|Boca Juniors|OT|89|52 80 94 90 30 66
+Didi|CM|BRA|Botafogo|OT|89|64 82 92 84 56 66
+Pavel Nedvěd|LM/CAM|CZE|Juventus|SA|89|82 84 80 84 62 78
+Ryan Giggs|LM/LW|WAL|Man Utd|PL|89|88 74 82 88 40 66
+David Silva|CAM|ESP|Man City|PL|88|66 74 90 90 44 56
+Xabi Alonso|CDM/CM|ESP|Real Madrid|LL|88|52 74 92 74 76 74
+Michael Ballack|CM|GER|Bayern Munich|BL|88|68 84 80 76 74 86
+Bastian Schweinsteiger|CM|GER|Bayern Munich|BL|88|68 78 86 80 76 80
+Günter Netzer|CAM|GER|Gladbach|BL|88|72 78 92 82 40 68
+Clarence Seedorf|CM|NED|AC Milan|SA|88|70 78 84 84 68 84
+Juninho Pernambucano|CM|BRA|Lyon|L1|88|56 90 90 80 48 56
+David Beckham|RM|ENG|Man Utd|PL|88|70 80 94 78 54 72
+Claude Makélélé|CDM|FRA|Chelsea|PL|87|64 46 74 70 88 74
+Cesc Fàbregas|CM|ESP|Arsenal|PL|87|62 74 92 82 58 58
+Mesut Özil|CAM|GER|Real Madrid|LL|87|70 72 92 88 28 52
+Jean Tigana|CM|FRA|Bordeaux|L1|87|84 62 82 86 70 66
+Alain Giresse|CM|FRA|Bordeaux|L1|87|76 70 88 88 44 50
+Gennaro Gattuso|CDM|ITA|AC Milan|SA|84|68 48 64 62 84 86
+Pelé|CF/CAM|BRA|Santos|OT|98|92 97 92 97 42 76
+Ronaldo Nazário|ST|BRA|Real Madrid|LL|96|95 96 76 96 26 80
+Alfredo Di Stéfano|CF|ARG|Real Madrid|LL|96|86 94 88 92 66 82
+Ferenc Puskás|ST|HUN|Real Madrid|LL|95|78 97 86 88 36 72
+Gerd Müller|ST|GER|Bayern Munich|BL|94|78 97 66 80 30 80
+Marco van Basten|ST|NED|AC Milan|SA|94|80 96 78 88 34 80
+Garrincha|RW|BRA|Botafogo|OT|94|90 80 80 98 28 58
+Eusébio|ST|POR|Benfica|OT|94|92 95 76 88 30 76
+George Best|RW/LW|NIR|Man Utd|PL|93|90 86 80 96 40 62
+Thierry Henry|ST/LW|FRA|Arsenal|PL|93|95 90 82 90 34 76
+Roberto Baggio|CF/CAM|ITA|Juventus|SA|93|78 90 88 94 30 62
+Romário|ST|BRA|Barcelona|LL|92|82 94 70 92 24 62
+Rivaldo|LW/CAM|BRA|Barcelona|LL|91|80 90 86 92 36 74
+Luís Figo|RW|POR|Real Madrid|LL|91|82 80 90 92 40 74
+Andriy Shevchenko|ST|UKR|AC Milan|SA|91|90 92 72 84 32 78
+Karl-Heinz Rummenigge|ST|GER|Bayern Munich|BL|91|88 92 76 86 30 78
+Dennis Bergkamp|CF|NED|Arsenal|PL|90|72 86 90 92 36 72
+Hristo Stoichkov|LW|BUL|Barcelona|LL|90|88 88 80 88 32 72
+Samuel Eto'o|ST|CMR|Barcelona|LL|90|92 90 68 84 40 78
+Zlatan Ibrahimović|ST|SWE|AC Milan|SA|90|72 92 80 88 30 90
+Gabriel Batistuta|ST|ARG|Fiorentina|SA|90|78 94 62 76 28 88
+Alessandro Del Piero|CF|ITA|Juventus|SA|90|76 90 84 90 28 62
+Arjen Robben|RW|NED|Bayern Munich|BL|90|92 86 80 92 26 64
+Franck Ribéry|LW|FRA|Bayern Munich|BL|90|88 80 84 92 36 66
+Wayne Rooney|ST/CF|ENG|Man Utd|PL|89|80 88 82 84 44 82
+Alan Shearer|ST|ENG|Newcastle|PL|89|72 92 68 72 36 86
+Didier Drogba|ST|CIV|Chelsea|PL|89|78 90 66 76 34 92
+Eric Cantona|CF|FRA|Man Utd|PL|89|66 86 84 84 40 84
+Kenny Dalglish|CF|SCO|Liverpool|PL|89|72 88 86 88 40 70
+Sergio Agüero|ST|ARG|Man City|PL|89|84 92 72 86 26 70
+Eden Hazard|LW|BEL|Chelsea|PL|89|86 80 84 94 28 62
+Raúl|ST|ESP|Real Madrid|LL|89|76 88 74 82 36 62
+George Weah|ST|LBR|Paris SG|L1|89|90 88 68 88 32 86
+Ruud van Nistelrooy|ST|NED|Man Utd|PL|88|70 92 62 74 26 78
+Gareth Bale|RW|WAL|Real Madrid|LL|88|95 84 80 86 40 80
+Hugo Sánchez|ST|MEX|Real Madrid|LL|88|76 92 66 80 26 72
+Jürgen Klinsmann|ST|GER|Bayern Munich|BL|88|82 88 66 74 34 76
+Just Fontaine|ST|FRA|Reims|L1|88|84 92 64 80 26 66
+Jean-Pierre Papin|ST|FRA|Marseille|L1|88|82 92 62 76 26 70
+Gary Lineker|ST|ENG|Tottenham|PL|87|82 90 62 72 24 62
+Michael Owen|ST|ENG|Liverpool|PL|87|94 88 60 80 24 58
+Miroslav Klose|ST|GER|Bayern Munich|BL|87|72 88 62 72 34 80
+Robert Pires|LW|FRA|Arsenal|PL|86|82 80 80 86 36 60
+Hernán Crespo|ST|ARG|AC Milan|SA|86|72 88 58 72 24 74
+Filippo Inzaghi|ST|ITA|AC Milan|SA|86|74 90 54 68 22 62
+David Ginola|LW|FRA|Newcastle|L1|84|78 76 80 88 30 72
+`;
+
+// Game engine: pure rules, no DOM. The host runs it; every other browser only renders snapshots.
+const E = (() => {
+  const POS = ['GK', 'DEF', 'MID', 'FWD'];
+  const POS_NAME = { GK: 'Goalkeepers', DEF: 'Defenders', MID: 'Midfielders', FWD: 'Forwards' };
+  const POS_ONE = { GK: 'goalkeeper', DEF: 'defender', MID: 'midfielder', FWD: 'forward' };
+  const CAT = { GK: 'GK', LB: 'DEF', CB: 'DEF', RB: 'DEF', LWB: 'DEF', RWB: 'DEF', CDM: 'MID', CM: 'MID', CAM: 'MID', LM: 'MID', RM: 'MID', LW: 'FWD', RW: 'FWD', ST: 'FWD', CF: 'FWD' };
+  const ROLE_XY = { LB: [-1, 1], CB: [0, 1], RB: [1, 1], LWB: [-1, 1.5], RWB: [1, 1.5], CDM: [0, 2], CM: [0, 2.5], LM: [-1, 2.5], RM: [1, 2.5], CAM: [0, 3], LW: [-1, 3.5], RW: [1, 3.5], CF: [0, 3.7], ST: [0, 4] };
+
+  const FORMATIONS = [
+    ['4-3-3', 'LB 12 70,CB 37 76,CB 63 76,RB 88 70,CM 24 50,CDM 50 56,CM 76 50,LW 16 24,ST 50 14,RW 84 24'],
+    ['4-2-3-1', 'LB 12 70,CB 37 76,CB 63 76,RB 88 70,CDM 34 56,CDM 66 56,CAM 50 38,LW 16 26,ST 50 13,RW 84 26'],
+    ['4-4-2', 'LB 12 70,CB 37 76,CB 63 76,RB 88 70,LM 12 44,CM 37 50,CM 63 50,RM 88 44,ST 35 16,ST 65 16'],
+    ['4-2-4', 'LB 12 70,CB 37 76,CB 63 76,RB 88 70,CM 34 50,CM 66 50,LW 12 24,ST 37 14,ST 63 14,RW 88 24'],
+    ['3-5-2', 'CB 22 74,CB 50 78,CB 78 74,LM 10 46,CM 32 54,CDM 50 60,CM 68 54,RM 90 46,ST 35 16,ST 65 16'],
+    ['3-4-3', 'CB 22 74,CB 50 78,CB 78 74,LM 10 48,CM 37 54,CM 63 54,RM 90 48,LW 18 22,ST 50 14,RW 82 22'],
+    ['5-3-2', 'LWB 8 62,CB 28 76,CB 50 80,CB 72 76,RWB 92 62,CM 24 46,CDM 50 52,CM 76 46,ST 35 16,ST 65 16'],
+    ['5-4-1', 'LWB 8 62,CB 28 76,CB 50 80,CB 72 76,RWB 92 62,LM 12 40,CM 37 46,CM 63 46,RM 88 40,ST 50 14'],
+  ].map(([name, s]) => ({
+    name,
+    slots: [{ role: 'GK', x: 50, y: 92 }].concat(s.split(',').map(t => { const [role, x, y] = t.split(' '); return { role, x: +x, y: +y }; })),
+  }));
+
+  const quota = f => { const q = { GK: 0, DEF: 0, MID: 0, FWD: 0 }; FORMATIONS[f].slots.forEach(s => q[CAT[s.role]]++); return q; };
+
+  // ---- player database ----
+  const parseRaw = (raw, leg) => raw.trim().split('\n').map(line => {
+    const [name, pos, nat, club, lg, ovr, st] = line.split('|');
+    const roles = pos.split('/');
+    return { name, pos: roles[0], alts: roles.slice(1), nat, club, lg, ovr: +ovr, st: st.split(' ').map(Number), leg, cat: CAT[roles[0]] };
+  });
+  const PLAYERS = parseRaw(RAW_CURRENT, false).concat(parseRaw(RAW_LEGENDS, true));
+  PLAYERS.forEach((p, i) => { p.id = i; });
+  const ACADEMY_ROLE = { GK: 'GK', DEF: 'CB', MID: 'CM', FWD: 'ST' };
+  const academyAlts = { GK: [], DEF: ['LB', 'RB', 'LWB', 'RWB'], MID: ['CDM', 'CAM', 'LM', 'RM'], FWD: ['LW', 'RW', 'CF'] };
+  // Academy players fill a slot when a pool runs out. Ids are -1-(position index): GK -1 … FWD -4.
+  const academy = id => {
+    const cat = POS[-id - 1];
+    return { id, name: 'Academy ' + POS_ONE[cat], pos: ACADEMY_ROLE[cat], alts: academyAlts[cat], nat: '', club: 'Youth team', lg: '', ovr: 54, st: cat === 'GK' ? [54, 54, 54, 54] : [58, 52, 52, 54, 52, 54], leg: false, cat, academy: true };
+  };
+  const getP = id => (id >= 0 ? PLAYERS[id] : academy(id));
+
+  const STAT_LABELS = ['PAC', 'SHO', 'PAS', 'DRI', 'DEF', 'PHY'];
+  const GK_LABELS = ['REF', 'HAN', 'POS', 'KIC'];
+  const POOLS = [['GL', 'Global'], ['PL', 'Premier League'], ['LL', 'La Liga'], ['SA', 'Serie A'], ['BL', 'Bundesliga'], ['L1', 'Ligue 1'], ['OT', 'Rest of the world']];
+  const ERAS = [['now', 'Current'], ['all', 'All-time'], ['leg', 'Legends only']];
+
+  const poolList = cfg => PLAYERS.filter(p => (cfg.era === 'all' || (cfg.era === 'leg') === p.leg) && (cfg.pool === 'GL' || p.lg === cfg.pool));
+  const poolCount = cfg => { const c = { GK: 0, DEF: 0, MID: 0, FWD: 0, all: 0 }; poolList(cfg).forEach(p => { c[p.cat]++; c.all++; }); return c; };
+
+  // ---- deterministic randomness (32-bit integer arithmetic only, so every browser agrees) ----
+  const rng = seed => {
+    let a = seed | 0;
+    return () => {
+      a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  };
+  const hash = (...n) => n.reduce((h, x) => Math.imul(h ^ (x | 0), 16777619) >>> 0, 2166136261);
+
+  // Chance of being drawn, by rating. Whole numbers so every browser gets the same draw.
+  const rarityWeight = ovr => (ovr >= 95 ? 3 : ovr >= 93 ? 7 : ovr >= 91 ? 20 : ovr >= 89 ? 26 : ovr >= 87 ? 42 : ovr >= 85 ? 64 : ovr >= 83 ? 90 : ovr >= 80 ? 110 : 120);
+  const deckCache = new Map();
+  const deckFor = s => {
+    const key = s.seed + '|' + s.cfg.pool + '|' + s.cfg.era;
+    if (deckCache.has(key)) return deckCache.get(key);
+    const r = rng(s.seed), d = { GK: [], DEF: [], MID: [], FWD: [] };
+    // Weighted draw without replacement: the higher the rating, the less likely a player is to come up.
+    POS.forEach(cat => {
+      const left = poolList(s.cfg).filter(p => p.cat === cat);
+      while (left.length) {
+        let total = 0;
+        left.forEach(p => { total += rarityWeight(p.ovr); });
+        let at = r() * total, j = 0;
+        for (; j < left.length - 1; j++) { at -= rarityWeight(left[j].ovr); if (at < 0) break; }
+        d[cat].push(left[j].id);
+        left.splice(j, 1);
+      }
+    });
+    deckCache.set(key, d);
+    return d;
+  };
+
+  // ---- state ----
+  const defaultCfg = () => ({ pool: 'GL', era: 'now', blind: false, showOvr: true, sealed: false, budget: 100, timer: 10, fmt: 'auto', rounds: 2 });
+  const newState = (code) => ({ v: 1, code, phase: 'lobby', seed: 0, cfg: defaultCfg(), m: [], t: 0, pi: 0, di: [0, 0, 0, 0], k: 0, lot: null, log: [] });
+  const newManager = (id, n, bot) => ({ id, n, bot: bot ? 1 : 0, b: 100, f: 0, tac: 0, s: [], p: [], r: 0, on: 1 });
+
+  const BOT_NAMES = [
+    ['Route One Ron', 1.05, { FWD: 1.2, MID: .9 }], ['Tiki Tanya', 1, { MID: 1.3, DEF: .9 }], ['Catenaccio Carla', .95, { DEF: 1.25, GK: 1.2, FWD: .85 }],
+    ['Moneyball Mo', .86, {}], ['Big Spender Bea', 1.2, {}], ['Gegen Gus', 1.05, { MID: 1.1, FWD: 1.1 }],
+    ['False Nine Nell', 1, { FWD: 1.15 }], ['Sweeper Sven', .95, { DEF: 1.2, GK: 1.1 }], ['Wingback Wes', 1, { DEF: 1.1, MID: 1.05 }], ['Doc Tactics', .92, { MID: 1.15 }],
+  ];
+  const addBot = s => {
+    const used = new Set(s.m.map(m => m.n));
+    const b = BOT_NAMES.find(x => !used.has(x[0]));
+    if (!b || s.m.length >= 10) return false;
+    s.m.push(newManager('bot' + BOT_NAMES.indexOf(b), b[0], true));
+    s.v++;
+    return true;
+  };
+  const persona = m => BOT_NAMES.find(b => b[0] === m.n) || ['', 1, {}];
+
+  const countCat = (m, cat) => m.s.reduce((n, id) => n + (getP(id).cat === cat ? 1 : 0), 0);
+  const need = (m, cat) => quota(m.f)[cat] - countCat(m, cat);
+  const maxBid = m => m.b - (11 - m.s.length - 1);
+  const curCat = s => POS[s.pi];
+  const minCost = s => Math.max(1, Math.ceil(s.cfg.budget / 100));
+
+  const startGame = (s, seed) => {
+    s.seed = seed >>> 0;
+    s.phase = 'form';
+    s.t = 30000;
+    s.pi = 0; s.di = [0, 0, 0, 0]; s.k = 0; s.lot = null; s.log = [];
+    s.m.forEach(m => {
+      m.b = s.cfg.budget; m.s = []; m.p = []; m.tac = 0; m.r = 0;
+      if (m.bot) { const r = rng(hash(s.seed, s.m.indexOf(m))); m.f = Math.floor(r() * FORMATIONS.length); m.r = 1; }
+    });
+    s._sb = {}; s._bw = {}; s._bv = {};
+    s.v++;
+    maybeLeaveForm(s);
+  };
+
+  const maybeLeaveForm = s => {
+    if (s.phase === 'form' && (s.t <= 0 || s.m.every(m => m.r || !m.on))) beginAuction(s);
+  };
+  const beginAuction = s => {
+    s.phase = 'auction';
+    s.m.forEach(m => { m.r = 0; });
+    nextLot(s);
+  };
+
+  const nextLot = s => {
+    s._sb = {}; s._bw = {}; s._bv = {};
+    const deck = deckFor(s);
+    while (s.pi < 4) {
+      const cat = POS[s.pi];
+      if (!s.m.some(m => need(m, cat) > 0)) { s.pi++; continue; }
+      if (s.di[s.pi] >= deck[cat].length) {
+        // Pool exhausted: remaining slots go to free academy players.
+        s.m.forEach(m => { while (need(m, cat) > 0) { m.s.push(-1 - s.pi); m.p.push(0); } });
+        s.pi++;
+        continue;
+      }
+      const pid = deck[cat][s.di[s.pi]++];
+      s.k++;
+      s.lot = { k: s.k, pid, b: 0, by: -1, out: [], sub: [], done: null };
+      s.t = s.cfg.timer * 1000;
+      s.v++;
+      // The last manager needing this position gets whoever comes up, at the minimum price.
+      const needing = s.m.map((m, i) => (need(m, cat) > 0 ? i : -1)).filter(i => i >= 0);
+      if (needing.length === 1) {
+        const i = needing[0];
+        finishLot(s, i, Math.min(minCost(s), maxBid(s.m[i])), null, true);
+      }
+      return;
+    }
+    beginLineup(s);
+  };
+
+  const canBid = (s, i) => {
+    const l = s.lot, m = s.m[i];
+    if (!l || l.done) return false;
+    if (need(m, curCat(s)) <= 0 || l.out.includes(i)) return false;
+    if (s.cfg.sealed) return !l.sub.includes(i);
+    return i !== l.by && maxBid(m) > l.b;
+  };
+  const anyCanBid = s => s.m.some((_, i) => canBid(s, i));
+
+  const finishLot = (s, by, price, reveal, auto) => {
+    const l = s.lot;
+    l.done = { by, price, rev: reveal || null, auto: auto ? 1 : 0, fined: [] };
+    if (by >= 0) {
+      const m = s.m[by];
+      m.b -= price; m.s.push(l.pid); m.p.push(price);
+      s.log.unshift([l.pid, by, price]);
+      if (s.log.length > 5) s.log.pop();
+    } else {
+      // Nobody bid: everyone who still needs this position pays, but never out of the credits reserved for empty slots.
+      s.m.forEach((m, i) => {
+        if (need(m, curCat(s)) <= 0) return;
+        const fine = Math.min(minCost(s), m.b - (11 - m.s.length));
+        if (fine > 0) { m.b -= fine; l.done.fined.push([i, fine]); }
+      });
+    }
+    const humansWatching = s.m.some(m => !m.bot && m.on);
+    s.t = humansWatching ? (by >= 0 ? 1500 : 800) : 0;
+    s.v++;
+  };
+  const resolveSealed = s => {
+    const entries = s.lot.sub.map(i => [i, s._sb[i] || 1]);
+    let best = null;
+    entries.forEach(e => { if (!best || e[1] > best[1]) best = e; }); // first submitted wins a tie
+    if (best) finishLot(s, best[0], best[1], entries); else finishLot(s, -1, 0, []);
+  };
+  const checkLotEnd = (s, timeUp) => {
+    const l = s.lot;
+    if (!l || l.done) return;
+    if (!timeUp && anyCanBid(s)) return;
+    if (s.cfg.sealed) resolveSealed(s);
+    else if (l.by >= 0) finishLot(s, l.by, l.b);
+    else finishLot(s, -1, 0);
+  };
+
+  // A manager's action. Everything is validated here, because presence data from other browsers is untrusted.
+  const act = (s, i, a) => {
+    const m = s.m[i];
+    if (!m || !a) return false;
+    if (s.phase === 'form') {
+      if (a.k === 'form' && Number.isInteger(a.v) && a.v >= 0 && a.v < FORMATIONS.length) { m.f = a.v; m.r = 0; s.v++; return true; }
+      if (a.k === 'ready') { m.r = 1; s.v++; maybeLeaveForm(s); return true; }
+      return false;
+    }
+    if (s.phase === 'auction') {
+      const l = s.lot;
+      if (!l || l.done) return false;
+      if (a.k === 'out') {
+        if (l.by === i || l.out.includes(i) || need(m, curCat(s)) <= 0 || (s.cfg.sealed && l.sub.includes(i))) return false;
+        l.out.push(i); s.v++; checkLotEnd(s); return true;
+      }
+      if (!canBid(s, i)) return false;
+      if (!Number.isInteger(a.v) || a.v > maxBid(m)) return false;
+      if (a.k === 'bid' && !s.cfg.sealed) {
+        if (a.v <= l.b) return false;
+        l.b = a.v; l.by = i; s.t = s.cfg.timer * 1000; s._bw = {}; s.v++; checkLotEnd(s); return true;
+      }
+      if (a.k === 'seal' && s.cfg.sealed) {
+        if (a.v < 1) return false;
+        s._sb[i] = a.v; l.sub.push(i); s.v++; checkLotEnd(s); return true;
+      }
+      return false;
+    }
+    if (s.phase === 'line') {
+      if (a.k === 'tac' && [0, 1, 2].includes(a.v)) { m.tac = a.v; s.v++; return true; }
+      if (a.k === 'order' && Array.isArray(a.v) && a.v.length === 11) {
+        const before = m.s.slice().sort().join();
+        if (a.v.slice().sort().join() !== before) return false;
+        const pool = m.s.map((id, j) => [id, m.p[j]]);
+        const p2 = a.v.map(id => { const j = pool.findIndex(x => x[0] === id); return pool.splice(j, 1)[0][1]; });
+        m.s = a.v.slice(); m.p = p2; m.r = 0; s.v++;
+        return true;
+      }
+      if (a.k === 'ready') { m.r = 1; s.v++; maybeSim(s); return true; }
+    }
+    return false;
+  };
+
+  const tick = (s, dt) => {
+    if (s.phase === 'form') { s.t -= dt; maybeLeaveForm(s); return; }
+    if (s.phase === 'line') { s.t -= dt; maybeSim(s); return; }
+    if (s.phase === 'sim') { if (s.sim) s.sim.t += dt * s.sim.sp; return; }
+    if (s.phase !== 'auction' || !s.lot) return;
+    s.t -= dt;
+    if (!s.lot.done && !anyCanBid(s)) { checkLotEnd(s); return; }
+    if (s.t > 0) return;
+    if (s.lot.done) nextLot(s); else checkLotEnd(s, true);
+  };
+
+  // ---- computer managers ----
+  const botValue = (s, i, r) => {
+    const m = s.m[i], p = getP(s.lot.pid), cat = p.cat;
+    const deck = deckFor(s)[cat], rest = deck.slice(s.di[s.pi]).map(id => PLAYERS[id].ovr);
+    rest.push(p.ovr);
+    const mean = rest.reduce((a, b) => a + b, 0) / rest.length;
+    const sd = Math.max(3, Math.sqrt(rest.reduce((a, b) => a + (b - mean) * (b - mean), 0) / rest.length));
+    const z = (p.ovr - mean) / sd;
+    // Budget is planned across the whole squad, with attackers worth more, so bots still have money when forwards come up.
+    const SLOT_WEIGHT = { GK: .7, DEF: .7, MID: 1, FWD: 1.7 };
+    const plan = POS.reduce((t, c) => t + Math.max(0, need(m, c)) * SLOT_WEIGHT[c], 0);
+    const per = m.b * SLOT_WEIGHT[cat] / plan;
+    let k = z >= 0 ? Math.min(3, 1.05 + .45 * z + .22 * z * z) : Math.max(0.15, 1.05 + .6 * z);
+    const [, mult, pref] = persona(m);
+    k *= mult * (pref[cat] || 1) * (0.85 + r() * 0.3);
+    if (s.cfg.blind) k *= 0.8 + r() * 0.4;
+    const needed = s.m.reduce((n, x) => n + Math.max(0, need(x, cat)), 0);
+    if (rest.length <= needed * 1.3) k *= 1.5;
+    const myNeed = need(m, cat);
+    if (rest.length <= myNeed + 1) k *= 2;
+    const pass = z < -0.9 && rest.length > needed * 2.2 && r() < 0.85;
+    return pass ? 0 : Math.min(maxBid(m), Math.max(1, Math.round(per * k)));
+  };
+  const botsStep = (s, dt, r = Math.random) => {
+    if (s.phase !== 'auction' || !s.lot || s.lot.done) return;
+    const humanLive = s.m.some((m, j) => !m.bot && m.on && canBid(s, j));
+    for (let i = 0; i < s.m.length; i++) {
+      const m = s.m[i];
+      if ((!m.bot && m.on) || !canBid(s, i)) continue; // absent managers get an AI stand-in until they return
+      if (s._bw[i] === undefined) s._bw[i] = humanLive ? 500 + r() * 1700 : 80 + r() * 280;
+      s._bw[i] -= dt;
+      if (s._bw[i] > 0) continue;
+      delete s._bw[i];
+      if (s._bv[i] === undefined) s._bv[i] = botValue(s, i, r);
+      const v = s._bv[i], l = s.lot;
+      if (s.cfg.sealed) {
+        if (v < 1) act(s, i, { k: 'out' });
+        else act(s, i, { k: 'seal', v: Math.max(1, Math.min(maxBid(m), Math.round(v * (0.72 + r() * 0.26)))) });
+      } else if (l.b >= v || v < 1) {
+        act(s, i, { k: 'out' });
+      } else {
+        const unit = Math.max(1, Math.round(s.cfg.budget / 100));
+        let next = l.b === 0 ? Math.max(1, Math.round(v * (0.2 + r() * 0.3))) : l.b + (r() < 0.22 ? 5 * unit : unit);
+        next = Math.max(l.b + 1, Math.min(next, v, maxBid(m)));
+        act(s, i, { k: 'bid', v: next });
+      }
+      if (s.phase !== 'auction' || !s.lot || s.lot.done) return;
+    }
+  };
+
+  // ---- position fit ----
+  const rolePenalty = (from, to) => {
+    if (from === to) return 0;
+    if (from === 'GK' || to === 'GK') return 20;
+    const a = ROLE_XY[from], b = ROLE_XY[to];
+    return Math.round(Math.abs(a[0] - b[0]) * 1.5 + Math.abs(a[1] - b[1]) * 2);
+  };
+  const fitPenalty = (p, role) => {
+    let best = rolePenalty(p.pos, role);
+    p.alts.forEach(alt => { best = Math.min(best, alt === role ? 1 : rolePenalty(alt, role) + 1); });
+    return best;
+  };
+  const effective = (p, role) => p.ovr - fitPenalty(p, role);
+
+  const lineupScore = (f, ids) => FORMATIONS[f].slots.reduce((t, sl, j) => t + effective(getP(ids[j]), sl.role), 0);
+  const bestOrder = (f, ids) => {
+    let order = ids.slice();
+    const slots = FORMATIONS[f].slots;
+    // Start from natural positions, then improve with pairwise swaps until nothing helps.
+    const taken = new Set();
+    const placed = slots.map(sl => {
+      let bestJ = -1, bestV = -1e9;
+      order.forEach((id, j) => { if (!taken.has(j)) { const v = effective(getP(id), sl.role); if (v > bestV) { bestV = v; bestJ = j; } } });
+      taken.add(bestJ);
+      return order[bestJ];
+    });
+    order = placed;
+    let improved = true, guard = 0;
+    while (improved && guard++ < 40) {
+      improved = false;
+      for (let a = 0; a < 11; a++) for (let b = a + 1; b < 11; b++) {
+        const cur = effective(getP(order[a]), slots[a].role) + effective(getP(order[b]), slots[b].role);
+        const alt = effective(getP(order[b]), slots[a].role) + effective(getP(order[a]), slots[b].role);
+        if (alt > cur) { [order[a], order[b]] = [order[b], order[a]]; improved = true; }
+      }
+    }
+    return order;
+  };
+  const teamOverall = m => {
+    const slots = FORMATIONS[m.f].slots;
+    const n = m.s.length;
+    if (!n) return 0;
+    return Math.round(m.s.reduce((t, id, j) => t + effective(getP(id), n === 11 ? slots[j].role : getP(id).pos), 0) / n);
+  };
+
+  const beginLineup = s => {
+    s.phase = 'line';
+    s.lot = null;
+    s.t = 60000;
+    s.m.forEach((m, i) => {
+      const before = m.s.map((id, j) => [id, m.p[j]]);
+      m.s = bestOrder(m.f, m.s);
+      m.p = m.s.map(id => { const j = before.findIndex(x => x[0] === id); return before.splice(j, 1)[0][1]; });
+      m.r = m.bot ? 1 : 0;
+      if (m.bot) m.tac = hash(s.seed, i) % 3;
+    });
+    s.v++;
+    maybeSim(s);
+  };
+  const maybeSim = s => {
+    if (s.phase === 'line' && (s.t <= 0 || s.m.every(m => m.r || !m.on))) { s.phase = 'sim'; s.t = 0; s.sim = { t: 0, sp: 1 }; s.v++; }
+  };
+  const resetToLobby = s => {
+    s.phase = 'lobby'; s.lot = null; s.t = 0; s.log = []; s.k = 0; s.sim = null;
+    s.m = s.m.filter(m => m.bot || m.on);
+    s.m.forEach(m => { m.s = []; m.p = []; m.r = 0; m.b = s.cfg.budget; });
+    s.v++;
+  };
+
+  // ---- match simulation (only + - * / on doubles, so every browser computes identical results) ----
+  const W = {
+    att: { ST: 1.2, CF: 1.1, LW: 1, RW: 1, CAM: .8, LM: .7, RM: .7, CM: .45, CDM: .2, LWB: .25, RWB: .25, LB: .15, RB: .15, CB: .05, GK: 0 },
+    cre: { CAM: 1, CM: 1, CDM: .7, LM: .8, RM: .8, LW: .6, RW: .6, CF: .4, ST: .25, LWB: .35, RWB: .35, LB: .35, RB: .35, CB: .1, GK: 0 },
+    def: { CB: 1.1, LB: .8, RB: .8, LWB: .7, RWB: .7, CDM: .8, CM: .4, LM: .25, RM: .25, CAM: .1, LW: .05, RW: .05, CF: .02, ST: .02, GK: 0 },
+  };
+  const profile = m => {
+    const slots = FORMATIONS[m.f].slots;
+    let A = 0, aw = 0, C = 0, cw = 0, D = 0, dw = 0, K = 50, P = 0, pw = 0;
+    const rows = m.s.map((id, j) => {
+      const p = getP(id), role = slots[j].role, pen = fitPenalty(p, role);
+      if (role === 'GK') {
+        K = p.cat === 'GK' ? p.ovr - pen : p.ovr - 25;
+        return { p, role, sho: 0, pas: 0 };
+      }
+      const st = p.cat === 'GK' ? [30, 20, 40, 25, 30, 50] : p.st;
+      const pac = st[0] - pen, sho = st[1] - pen, pas = st[2] - pen, dri = st[3] - pen, de = st[4] - pen, phy = st[5] - pen;
+      const wa = W.att[role], wc = W.cre[role], wd = W.def[role];
+      A += wa * (.5 * sho + .25 * dri + .25 * pac); aw += wa;
+      C += wc * (.6 * pas + .4 * dri); cw += wc;
+      D += wd * (.7 * de + .3 * phy); dw += wd;
+      if (CAT[role] !== 'DEF') { P += pac; pw++; }
+      return { p, role, sho, pas };
+    });
+    const q = quota(m.f);
+    return { A: A / aw, C: C / cw, D: D / dw, K, P: P / pw, nD: q.DEF, nF: q.FWD, tac: m.tac, rows };
+  };
+  const clamp = (x, a, b) => (x < a ? a : x > b ? b : x);
+  const xgFor = (t, o, home) => {
+    const att = .6 * t.A + .4 * t.C, def = .8 * o.D + .2 * o.K;
+    let x = 1.2 + .068 * (att - def) + .05 * (t.nF - 2) - .05 * (o.nD - 4) + (home ? .14 : -.02);
+    if (t.tac === 2) x *= 1.16;
+    if (o.tac === 2) x *= t.tac === 1 ? 1.26 : 1.12;
+    if (t.tac === 1) x *= .9 + clamp(t.P - 75, -10, 15) * .006;
+    if (o.tac === 1) x *= .94;
+    return clamp(x, .15, 4.6);
+  };
+  const pickWeighted = (rows, weight, r, skip) => {
+    let total = 0;
+    const w = rows.map(row => { const v = row === skip ? 0 : weight(row); total += v; return v; });
+    let at = r() * total;
+    for (let i = 0; i < rows.length; i++) { at -= w[i]; if (at <= 0 && w[i] > 0) return rows[i]; }
+    return rows[rows.length - 1];
+  };
+  const shotWeight = row => { const b = W.att[row.role] + .03; const q = row.sho - 35; return row.role === 'GK' ? 0 : b * q * q; };
+  const passWeight = row => { const b = W.cre[row.role] + .08; const q = row.pas - 35; return row.role === 'GK' ? 0 : b * q * q; };
+  const playMatch = (s, h, a, seedKey, knockout) => {
+    const r = rng(hash(s.seed, seedKey, h, a));
+    const ph = profile(s.m[h]), pa = profile(s.m[a]);
+    const xh = xgFor(ph, pa, !knockout), xa = xgFor(pa, ph, false);
+    const ev = [];
+    let hg = 0, ag = 0;
+    for (let min = 1; min <= 90; min++) {
+      const side = r() < xh / 90 ? 0 : r() < xa / 90 ? 1 : -1;
+      if (side < 0) continue;
+      const rows = side === 0 ? ph.rows : pa.rows;
+      const sc = pickWeighted(rows, shotWeight, r);
+      const as = r() < .74 ? pickWeighted(rows, passWeight, r, sc) : null;
+      if (side === 0) hg++; else ag++;
+      ev.push({ min, side, sc: sc.p.id, as: as ? as.p.id : null });
+    }
+    const res = { h, a, hg, ag, ev, pens: null, key: seedKey, ko: knockout ? 1 : 0 };
+    if (knockout && hg === ag) res.pens = shootout(ph, pa, r);
+    return res;
+  };
+  // The story around the score: possession, chances, corners and bookings. Uses its own random stream, so it can never change a result.
+  const matchDetail = (s, x) => {
+    const r = rng(hash(s.seed, x.key, x.h, x.a, 7919));
+    const ph = profile(s.m[x.h]), pa = profile(s.m[x.a]);
+    const xs = [xgFor(ph, pa, !x.ko), xgFor(pa, ph, false)];
+    const lean = t => (t === 1 ? -.05 : t === 2 ? .03 : 0);
+    const share = clamp(.5 + (ph.C - pa.C) * .012 + lean(ph.tac) - lean(pa.tac), .3, .7);
+    const poss = [];
+    let cur = r() < share ? 0 : 1;
+    for (let min = 0; min <= 91; min++) { if (r() > .62) cur = r() < share ? 0 : 1; poss.push(cur); }
+    const goalAt = {};
+    x.ev.forEach(e => { goalAt[e.min] = e; poss[e.min] = e.side; if (e.min > 0) poss[e.min - 1] = e.side; });
+    const events = [];
+    for (let min = 1; min <= 90; min++) {
+      const g = goalAt[min];
+      if (g) { events.push({ min, type: 'goal', side: g.side, pid: g.sc, as: g.as }); continue; }
+      const side = poss[min], rows = side === 0 ? ph.rows : pa.rows, foes = side === 0 ? pa.rows : ph.rows;
+      const a = r(), b = r(), c = r(), d = r();
+      if (a < (5 + 5 * xs[side]) / 90 * 1.5) {
+        const shooter = pickWeighted(rows, shotWeight, r).p.id;
+        const onTarget = b < .36;
+        events.push({ min, type: onTarget ? 'save' : 'miss', side, pid: shooter });
+        if (c < .34) events.push({ min, type: 'corner', side });
+      } else if (d < .17) {
+        const outfield = foes.filter(row => row.role !== 'GK');
+        const pl = outfield[Math.floor(c * outfield.length)].p.id;
+        const yellow = b < .17;
+        events.push({ min, type: yellow ? 'card' : 'foul', side: 1 - side, pid: pl });
+      }
+    }
+    return { poss, events };
+  };
+  const shootout = (ph, pa, r) => {
+    const takers = t => t.rows.slice().filter(x => x.role !== 'GK').sort((x, y) => y.sho - x.sho || x.p.id - y.p.id).slice(0, 5);
+    const th = takers(ph), ta = takers(pa);
+    const prob = (sho, keeper) => clamp(.74 + (sho - keeper) * .004, .5, .92);
+    let sh = 0, sa = 0;
+    const seq = [];
+    for (let i = 0; i < 5; i++) {
+      const g1 = r() < prob(th[i].sho, pa.K); if (g1) sh++; seq.push([0, g1]);
+      const g2 = r() < prob(ta[i].sho, ph.K); if (g2) sa++; seq.push([1, g2]);
+    }
+    let i = 0;
+    while (sh === sa && i < 60) {
+      const k = i % 5;
+      const g1 = r() < prob(th[k].sho, pa.K); if (g1) sh++; seq.push([0, g1]);
+      const g2 = r() < prob(ta[k].sho, ph.K); if (g2) sa++; seq.push([1, g2]);
+      i++;
+    }
+    if (sh === sa) { if (r() < .5) sh++; else sa++; }
+    return { h: sh, a: sa, seq };
+  };
+  const roundRobin = (n, rounds) => {
+    const ids = [...Array(n).keys()];
+    if (n % 2) ids.push(-1);
+    const size = ids.length, one = [];
+    const arr = ids.slice();
+    for (let d = 0; d < size - 1; d++) {
+      const md = [];
+      for (let i = 0; i < size / 2; i++) {
+        const x = arr[i], y = arr[size - 1 - i];
+        if (x >= 0 && y >= 0) md.push(d % 2 ? [y, x] : [x, y]);
+      }
+      one.push(md);
+      arr.splice(1, 0, arr.pop());
+    }
+    return rounds === 2 ? one.concat(one.map(md => md.map(([x, y]) => [y, x]))) : one;
+  };
+  const emptyRow = i => ({ i, pl: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 });
+  const tableFrom = (n, matchdays) => {
+    const t = [...Array(n).keys()].map(emptyRow);
+    matchdays.forEach(md => md.forEach(x => {
+      const A = t[x.h], B = t[x.a];
+      A.pl++; B.pl++; A.gf += x.hg; A.ga += x.ag; B.gf += x.ag; B.ga += x.hg;
+      if (x.hg > x.ag) { A.w++; B.l++; A.pts += 3; } else if (x.hg < x.ag) { B.w++; A.l++; B.pts += 3; } else { A.d++; B.d++; A.pts++; B.pts++; }
+    }));
+    return t.sort((x, y) => y.pts - x.pts || (y.gf - y.ga) - (x.gf - x.ga) || y.gf - x.gf || x.i - y.i);
+  };
+  const koWinner = x => (x.hg > x.ag ? x.h : x.ag > x.hg ? x.a : x.pens.h > x.pens.a ? x.h : x.a);
+
+  const runTournament = s => {
+    const n = s.m.length;
+    const fixtures = roundRobin(n, s.cfg.rounds);
+    const league = fixtures.map((md, d) => md.map(([h, a]) => playMatch(s, h, a, d + 1, false)));
+    const table = tableFrom(n, league);
+    let fmt = s.cfg.fmt;
+    if (fmt === 'auto') fmt = n >= 6 ? 'semis' : 'final';
+    if (fmt === 'semis' && n < 4) fmt = 'final';
+    const ko = [];
+    let champ = table[0].i;
+    if (fmt === 'final') {
+      const f = playMatch(s, table[0].i, table[1].i, 900, true);
+      ko.push({ name: 'The final', ...f });
+      champ = koWinner(f);
+    } else if (fmt === 'semis') {
+      const a = playMatch(s, table[0].i, table[3].i, 801, true);
+      const b = playMatch(s, table[1].i, table[2].i, 802, true);
+      ko.push({ name: 'Semi-final 1', ...a }, { name: 'Semi-final 2', ...b });
+      const f = playMatch(s, koWinner(a), koWinner(b), 900, true);
+      ko.push({ name: 'The final', ...f });
+      champ = koWinner(f);
+    }
+    const goals = {}, assists = {};
+    const owner = {};
+    s.m.forEach((m, i) => m.s.forEach(id => { owner[id] = i; }));
+    league.flat().concat(ko).forEach(x => x.ev.forEach(e => {
+      goals[e.sc] = (goals[e.sc] || 0) + 1;
+      if (e.as !== null) assists[e.as] = (assists[e.as] || 0) + 1;
+    }));
+    const top = o => {
+      const ids = Object.keys(o).map(Number).filter(id => id >= 0).sort((x, y) => o[y] - o[x] || x - y);
+      return ids.length ? { id: ids[0], n: o[ids[0]], by: owner[ids[0]] } : null;
+    };
+    let value = null, dearest = null;
+    s.m.forEach((m, i) => m.s.forEach((id, j) => {
+      const price = m.p[j], p = getP(id);
+      if (p.academy || price < 1) return;
+      const score = (p.ovr - 70) / price;
+      if (!value || score > value.score) value = { id, price, by: i, score };
+      if (!dearest || price > dearest.price) dearest = { id, price, by: i };
+    }));
+    return { league, table, ko, champ, fmt, topScorer: top(goals), topAssist: top(assists), value, dearest };
+  };
+
+  // Snapshot sent to other browsers: everything except host-only keys (sealed bids, bot timers).
+  const snapshot = s => {
+    const o = {};
+    Object.keys(s).forEach(k => { if (k[0] !== '_') o[k] = s[k]; });
+    return o;
+  };
+
+  return { matchDetail, rarityWeight, minCost, POS, POS_NAME, POS_ONE, CAT, FORMATIONS, PLAYERS, POOLS, ERAS, STAT_LABELS, GK_LABELS, quota, getP, poolCount, newState, newManager, addBot, need, maxBid, curCat, canBid, startGame, act, tick, botsStep, fitPenalty, effective, bestOrder, teamOverall, lineupScore, resetToLobby, runTournament, tableFrom, koWinner, snapshot, profile, xgFor, deckFor, countCat, rng, hash };
+})();
+
+// Interface, host loop and live lobbies.
+const STORE = {
+  get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* storage is a convenience */ } },
+};
+const myId = (() => {
+  try {
+    let v = sessionStorage.getItem('ggg-id');
+    if (!v) { v = 'u' + Math.random().toString(36).slice(2, 9); sessionStorage.setItem('ggg-id', v); }
+    return v;
+  } catch (e) { return 'u' + Math.random().toString(36).slice(2, 9); }
+})();
+
+const App = { screen: 'home', s: null, isHost: false, code: null, recvAt: 0, roomApi: undefined, net: null, msg: '', banner: '', sel: -1, reel: null, sound: STORE.get('ggg-sound') === '1', joining: false };
+const $ = id => document.getElementById(id);
+const setBanner = t => { App.banner = t; const b = $('banner'); if (b) { b.textContent = t; b.hidden = !t; } };
+const esc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const cleanName = n => (n || '').replace(/[\u0000-\u001f\u007f-\u009f​-‏‪-‮⁠-⁯]/g, '').trim().slice(0, 18) || 'Manager';
+const me = () => (App.s ? App.s.m.findIndex(m => m.id === myId) : -1);
+const shortName = n => {
+  const w = n.split(' ');
+  if (w.length === 1) return n;
+  const lowerPart = ['van', 'de', 'der', 'di', 'den', 'du', 'dos', 'da', 'le', 'ter', 'al', 'El', 'De', 'Di'];
+  const last = w[w.length - 1];
+  return lowerPart.includes(w[w.length - 2]) ? w[w.length - 2] + ' ' + last : last;
+};
+const timeLeft = () => { const s = App.s; if (!s) return 0; return Math.max(0, App.isHost ? s.t : s.t - (performance.now() - App.recvAt)); };
+
+// ---- sound (off until the viewer turns it on) ----
+let audio = null;
+const beep = (freq, dur, type = 'square', vol = .05) => {
+  if (!App.sound) return;
+  try {
+    audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+    const o = audio.createOscillator(), g = audio.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol, audio.currentTime);
+    g.gain.exponentialRampToValueAtTime(.0001, audio.currentTime + dur);
+    o.connect(g); g.connect(audio.destination); o.start(); o.stop(audio.currentTime + dur);
+  } catch (e) { /* no audio available */ }
+};
+const gavel = () => { beep(150, .14, 'triangle', .22); setTimeout(() => beep(120, .1, 'triangle', .16), 90); };
+
+// ---- rendering helpers ----
+const patchCache = {};
+const patch = (id, html) => {
+  const el = $(id);
+  if (!el || patchCache[id] === html) return;
+  const focusId = document.activeElement && document.activeElement.id;
+  const vals = {};
+  el.querySelectorAll('input[id]').forEach(i => { vals[i.id] = i.value; });
+  el.innerHTML = html;
+  patchCache[id] = html;
+  Object.keys(vals).forEach(k => { const i = $(k); if (i) i.value = vals[k]; });
+  if (focusId && $(focusId) && el.contains($(focusId))) $(focusId).focus();
+};
+const setScreen = (name, html) => {
+  if (App.screen === name && $('app').dataset.s === name) return;
+  App.screen = name;
+  Object.keys(patchCache).forEach(k => delete patchCache[k]);
+  $('app').dataset.s = name;
+  $('app').innerHTML = html;
+  try { window.scrollTo(0, 0); } catch (e) { /* frame may refuse */ }
+};
+const pitchLines = `<svg viewBox="0 0 100 112" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="var(--pitchline)" stroke-width=".5"><rect x="3" y="3" width="94" height="106"/><path d="M3 56H97"/><circle cx="50" cy="56" r="10"/><rect x="25" y="3" width="50" height="16"/><rect x="38" y="3" width="24" height="6"/><rect x="25" y="93" width="50" height="16"/><rect x="38" y="103" width="24" height="6"/></g></svg>`;
+
+const playerCard = (p, opts = {}) => {
+  const blind = opts.blind;
+  const labels = p.cat === 'GK' ? E.GK_LABELS : E.STAT_LABELS;
+  const stats = blind
+    ? `<div class="blindnote">Ratings hidden. Trust what you know.</div>`
+    : `<div class="stats">${labels.map((l, i) => `<div class="stat"><span>${l}</span><span>${p.st[i]}</span><i><b class="${p.st[i] >= 85 ? 'hi' : ''}" style="width:${p.st[i]}%"></b></i></div>`).join('')}</div>`;
+  return `<article class="card">
+    <div class="card-top"><span class="label">${opts.lotLabel || ''}</span><span class="card-tag ${p.leg ? 'leg' : ''}">${p.leg ? 'LEGEND' : esc(p.cat)}</span></div>
+    <div class="card-main"><div class="roundel" aria-label="Rating">${blind ? '?' : p.ovr}</div>
+      <div class="card-id"><h2 class="card-name">${esc(p.name)}</h2>
+      <p class="card-sub">${[p.pos].concat(p.alts).join(' / ')} · ${esc(p.nat)} · ${esc(p.club)}</p></div></div>
+    ${stats}${opts.stamp || ''}</article>`;
+};
+
+const topBar = (extra = '') => `<div class="wrap bar"><span class="brand">Going, Going, <em>Goal!</em></span>${extra}<span class="sp"></span>
+  <button class="btn small" data-a="sound" aria-pressed="${App.sound}">Sound ${App.sound ? 'on' : 'off'}</button>
+  <button class="btn small" data-a="leave">Leave</button></div>`;
+
+// ---- home ----
+const homeHtml = () => `<section class="pitchbg"><div class="wrap hero"><div class="hero-grid">
+  <div><h1 class="mark" aria-label="Going, going, goal!"><span class="m1">Going,</span><span class="m2">Going,</span><span class="m3">Goal!</span></h1>
+    <p class="pitch-lede">A live football transfer auction. Eleven signings, one budget, and everyone in the room wants the same striker.</p>
+    <form class="start" id="startform" autocomplete="off">
+      <div><label class="label" for="mgrname">Manager name</label><input type="text" id="mgrname" maxlength="18" placeholder="The Gaffer" value="${esc(STORE.get('ggg-name') || '')}"></div>
+      <div class="start-row"><button type="button" class="btn primary" data-a="solo">Play against AI</button><button type="button" class="btn" data-a="host" id="hostbtn">Create friends lobby</button></div>
+      <div class="join"><input type="text" id="joincode" maxlength="5" placeholder="CODE" aria-label="Lobby code"><button type="button" class="btn" data-a="join" id="joinbtn">Join lobby</button></div>
+      <p class="note" id="roomnote" role="status"></p>
+    </form></div>
+  <div class="hero-demo"><div class="demo-cap"><span class="label">Example lot</span><span class="label" id="demotag"></span></div><div id="demo"></div></div>
+  </div></div></section>
+  <div class="wrap">
+    <section class="steps">
+      <div class="step"><span class="n">Step 1 of 3</span><h3>Win your players</h3><p>Pick a formation, then bid as goalkeepers, defenders, midfielders and forwards come up one at a time. Each new bid resets the clock.</p></div>
+      <div class="step"><span class="n">Step 2 of 3</span><h3>Shape your XI</h3><p>Put each signing where they play best and choose a tactic. A striker in goal costs you dearly.</p></div>
+      <div class="step"><span class="n">Step 3 of 3</span><h3>Watch it play out</h3><p>Every team plays a simulated league, then the top sides meet in the knockouts. The better squad has better odds, never a guarantee.</p></div>
+    </section>
+    <section class="rules">
+      <div><h2>House rules</h2><ul>
+        <li>Everyone starts with the same budget, 100 credits by default.</li>
+        <li>You must finish with exactly 11 players, so 1 credit stays reserved for each empty slot.</li>
+        <li>The leading bidder can't drop out. Players don't come back once offered.</li>
+        <li>If nobody bids, everyone who still needs that position loses 1 credit. Your reserved credits are safe.</li>
+        <li>The last manager needing a position gets whoever comes up, at the lowest price.</li>
+        <li>The higher the rating, the rarer the player.</li>
+        <li>If a player pool runs dry, free academy players fill the gaps.</li>
+      </ul></div>
+      <div><h2>Ways to play</h2><ul>
+        <li><b>Rated or blind:</b> show ratings, or make everyone rely on football knowledge.</li>
+        <li><b>Open or sealed:</b> bid out loud, or submit one secret bid per lot.</li>
+        <li><b>Current, all-time or legends:</b> ${E.PLAYERS.filter(p => !p.leg).length} current players and ${E.PLAYERS.filter(p => p.leg).length} legends across world football.</li>
+        <li><b>2 to 10 managers:</b> mix friends and AI rivals in the same sale.</li>
+      </ul></div>
+    </section>
+    <p class="foot">An independent fan game, not affiliated with any league, club or player. Ratings are subjective and made up for this game, and clubs may be out of date. Credits are play money.</p>
+  </div>`;
+
+const DEMO = ['Erling Haaland', 'Lamine Yamal', 'Diego Maradona', 'Vitinha'];
+const demo = { i: 0, b: 0, t: null, step: 0 };
+const renderDemo = () => {
+  const p = E.PLAYERS.find(x => x.name === DEMO[demo.i % DEMO.length]);
+  const sold = demo.step >= 6;
+  const stamp = sold ? `<div class="stamp"><div>Sold<small>${demo.b} cr to paddle ${(demo.step % 2) + 3}</small></div></div>` : '';
+  patch('demo', playerCard(p, { lotLabel: 'Lot ' + String(demo.i + 7).padStart(3, '0'), stamp }));
+  const tag = $('demotag');
+  if (tag) tag.textContent = sold ? 'Hammer down' : demo.b + ' cr bid';
+};
+const startDemo = () => {
+  clearInterval(demo.t);
+  demo.i = 0; demo.b = 18; demo.step = 2;
+  renderDemo();
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+  demo.t = setInterval(() => {
+    if (!$('demo')) { clearInterval(demo.t); return; }
+    demo.step++;
+    if (demo.step > 7) { demo.step = 0; demo.b = 4; demo.i++; } else if (demo.step < 6) demo.b += 3 + (demo.step * 2);
+    renderDemo();
+  }, 1100);
+};
+const renderHome = () => {
+  setScreen('home', homeHtml());
+  if (!demo.t || !$('demo').innerHTML) startDemo();
+  const note = $('roomnote');
+  if (!note) return;
+  const hostBtn = $('hostbtn'), joinBtn = $('joinbtn');
+  const off = !App.roomApi;
+  hostBtn.disabled = off; joinBtn.disabled = off;
+  note.textContent = App.msg || (App.roomApi === undefined ? 'Checking for friend lobbies…' : off ? 'Friend lobbies need this page open in Claude while signed in. AI games work anywhere.' : window.GGG_WEB ? 'Create a lobby, then send friends the link. No account needed.' : 'Friends join with your code. They need access to this page.');
+};
+
+// ---- lobby ----
+const seg = (key, options, cur, disabled) => `<div class="seg" role="group">${options.map(([v, t]) => `<button type="button" data-a="cfg" data-k="${key}" data-v="${v}" class="${String(cur) === String(v) ? 'on' : ''}" aria-pressed="${String(cur) === String(v)}" ${disabled ? 'disabled' : ''}>${t}</button>`).join('')}</div>`;
+const lobbyHtml = () => `${topBar()}<div class="wrap">
+  <div class="head pitchbg" id="r-head"></div>
+  <div class="lobby-grid"><section class="panel"><h2>Managers</h2><div id="r-mgr"></div></section>
+  <section class="panel"><h2>Sale rules</h2><div id="r-cfg"></div></section></div></div>`;
+const renderLobby = () => {
+  setScreen('lobby', lobbyHtml());
+  const s = App.s, host = App.isHost, online = !!App.net;
+  patch('r-head', `<div><span class="label">${online ? 'Friends lobby' : 'Practice sale'}</span><h1>Lobby ready</h1></div>
+    ${online ? `<div class="codebox"><span class="code num">${esc(s.code)}</span><button class="btn small" data-a="copy" id="copybtn">Copy code</button>${window.GGG_WEB ? '<button class="btn small" data-a="copylink" id="linkbtn">Copy invite link</button>' : ''}</div>` : ''}`);
+  const cnt = E.poolCount(s.cfg), n = s.m.length;
+  const canStart = n >= 2;
+  patch('r-mgr', `<ul class="mlist">${s.m.map((m, i) => `<li class="mrow"><span class="paddle">${i + 1}</span><span class="nm">${esc(m.n)}</span>
+      ${m.id === myId ? '<span class="chip you">You</span>' : m.bot ? '<span class="chip">AI</span>' : '<span class="chip ok">Friend</span>'}
+      ${host && m.bot ? `<button class="btn small" data-a="rmbot" data-v="${i}" aria-label="Remove ${esc(m.n)}">Remove</button>` : ''}</li>`).join('')}</ul>
+    ${host ? `<div class="cta-row"><button class="btn small" data-a="addbot" ${n >= 10 ? 'disabled' : ''}>Add AI manager</button><span class="mute" style="font-size:13px">${n} of 10</span></div>
+      <div class="cta-row"><button class="btn primary" data-a="start" id="startbtn" ${canStart ? '' : 'disabled'}>Start the sale</button></div>
+      ${canStart ? '' : '<p class="hint">Add at least one more manager.</p>'}`
+    : `<p class="hint" style="margin-top:12px">Waiting for the host to start the sale.</p>`}`);
+  const dis = !host, thin = E.POS.filter(c => cnt[c] < n * E.quota(0)[c] + 2);
+  patch('r-cfg', `
+    <div class="field"><span class="label">Player pool</span>${seg('pool', E.POOLS, s.cfg.pool, dis)}</div>
+    <div class="field"><span class="label">Era</span>${seg('era', E.ERAS, s.cfg.era, dis)}
+      <p class="hint num">${cnt.all} players: ${cnt.GK} GK, ${cnt.DEF} DEF, ${cnt.MID} MID, ${cnt.FWD} FWD</p>
+      ${thin.length ? `<p class="warn">Short on ${thin.map(c => E.POS_NAME[c].toLowerCase()).join(' and ')} for ${n} managers, so some slots may go to academy players.</p>` : ''}</div>
+    <div class="two">
+      <div class="field"><span class="label">Ratings</span>${seg('blind', [[0, 'Rated'], [1, 'Blind']], s.cfg.blind ? 1 : 0, dis)}
+        ${s.cfg.blind ? `<div style="margin-top:6px">${seg('showOvr', [[1, 'Show team overall'], [0, 'Hide it too']], s.cfg.showOvr ? 1 : 0, dis)}</div>` : ''}</div>
+      <div class="field"><span class="label">Bidding</span>${seg('sealed', [[0, 'Open'], [1, 'Sealed']], s.cfg.sealed ? 1 : 0, dis)}</div>
+      <div class="field"><span class="label">Budget (credits)</span>${seg('budget', [[50, '50'], [100, '100'], [200, '200'], [500, '500']], s.cfg.budget, dis)}</div>
+      <div class="field"><span class="label">Bid clock</span>${seg('timer', [[5, '5s'], [10, '10s'], [15, '15s'], [20, '20s']], s.cfg.timer, dis)}</div>
+      <div class="field"><span class="label">League rounds</span>${seg('rounds', [[1, 'Once'], [2, 'Home and away']], s.cfg.rounds, dis)}</div>
+      <div class="field"><span class="label">Tournament</span>${seg('fmt', [['auto', 'Auto'], ['league', 'League only'], ['final', 'League + final'], ['semis', 'League + semis + final']], s.cfg.fmt, dis)}</div>
+    </div>`);
+};
+
+// ---- formation ----
+const miniPitch = f => `<div class="mini pitchbg" style="background-size:30% 100%" aria-hidden="true">${E.FORMATIONS[f].slots.map((sl, i) => `<i class="${i === 0 ? 'gk' : ''}" style="left:${sl.x}%;top:${sl.y}%"></i>`).join('')}</div>`;
+const timerRow = () => `<div class="timerline"><div class="fuse"><div id="fuse"></div></div><span class="secs num" id="secs"></span></div>`;
+const renderForm = () => {
+  setScreen('form', `${topBar()}<div class="wrap">
+    <div class="head pitchbg"><div><span class="label">Before the sale</span><h1>Pick your shape</h1></div><p style="max-width:44ch">Your formation sets how many players you must buy in each position. The sale opens when everyone is ready.</p></div>
+    ${timerRow()}
+    <div class="lobby-grid form-grid"><section id="r-forms"></section><section class="panel"><h2>Managers</h2><div id="r-ready"></div></section></div></div>`);
+  const s = App.s, i = me(), mine = s.m[i];
+  patch('r-forms', mine ? `<div class="forms">${E.FORMATIONS.map((f, j) => { const q = E.quota(j); return `<button class="fcard ${mine.f === j ? 'on' : ''}" data-a="form" data-v="${j}" aria-pressed="${mine.f === j}">${miniPitch(j)}<b>${f.name}</b><small>${q.DEF} DEF · ${q.MID} MID · ${q.FWD} FWD</small></button>`; }).join('')}</div>
+    <div class="cta-row"><button class="btn primary" data-a="ready" id="readybtn" ${mine.r ? 'disabled' : ''}>${mine.r ? 'Ready. Waiting for the others' : `Lock in ${E.FORMATIONS[mine.f].name}`}</button></div>` : `<p class="panel">You're watching this game. The managers are choosing formations.</p>`);
+  patch('r-ready', `<ul class="mlist">${s.m.map((m, j) => `<li class="mrow"><span class="paddle">${j + 1}</span><span class="nm">${esc(m.n)}</span>${m.r ? '<span class="chip ok">Ready</span>' : '<span class="chip">Choosing</span>'}</li>`).join('')}</ul>`);
+};
+
+// ---- auction ----
+const auctionHtml = () => `${topBar('<div class="rounds" id="r-rounds"></div>')}<div class="wrap">
+  <div class="auction"><aside class="rail" id="r-rail" aria-label="Managers"></aside>
+  <section class="stage pitchbg"><div class="lot-grid"><div id="r-card" style="min-width:0"></div><div class="bidbox" id="r-bid" aria-live="polite"></div></div>
+    <div class="clock"><div class="fuse" id="fusewrap"><div id="fuse"></div></div><span class="secs num" id="secs"></span></div>
+    <div id="going-m" class="going" hidden></div><div class="ctl" id="r-ctl"></div></section>
+  <aside class="side"><section class="panel"><h3>Your XI</h3><div id="r-xi"></div></section><section class="panel"><h3>Recent sales</h3><div id="r-sales" class="sales"></div></section></aside></div></div>`;
+const units = s => [1, 5, 10].map(x => Math.max(1, Math.round(x * s.cfg.budget / 100)));
+const renderAuction = () => {
+  setScreen('auction', auctionHtml());
+  const s = App.s, l = s.lot, i = me(), mine = s.m[i], cat = E.curCat(s);
+  if (!l) return;
+  const p = E.getP(l.pid), blind = s.cfg.blind;
+  patch('r-rounds', E.POS.map((c, j) => {
+    const q = s.m.reduce((n, m) => n + Math.max(0, E.need(m, c)), 0);
+    return `<span class="${j === s.pi ? 'on' : j < s.pi ? 'done' : ''}">${c}${j >= s.pi ? ' ' + q : ''}</span>`;
+  }).join('') + `<span>Lot ${l.k}</span>`);
+  // manager rail
+  patch('r-rail', s.m.map((m, j) => {
+    const lead = !s.cfg.sealed && l.by === j && !l.done, won = l.done && l.done.by === j;
+    const full = E.need(m, cat) <= 0, out = l.out.includes(j), sub = l.sub.includes(j);
+    const state = won ? 'Signed' : lead ? 'Leading' : full ? 'Full here' : out ? 'Out' : sub ? 'Sealed' : E.canBid(s, j) ? (s.cfg.sealed ? 'Deciding' : 'In') : 'Priced out';
+    const rowClass = [lead || won ? 'lead' : '', j === i ? 'me' : '', out || full ? 'dim' : ''].join(' ');
+    return `<div class="rrow ${rowClass}"><span class="paddle">${j + 1}</span><span class="nm" title="${esc(m.n)}">${esc(m.n)}</span><span class="cr">${m.b}</span>
+      <span class="sub"><span>${m.s.length}/11 · ${E.need(m, cat) > 0 ? 'needs ' + E.need(m, cat) : '0 needed'}</span><span>${m.on ? state : 'AI stand-in'}</span></span></div>`;
+  }).join(''));
+  // card + stamp
+  let stamp = '';
+  if (l.done) {
+    if (l.done.by >= 0) stamp = `<div class="stamp"><div>${l.done.auto ? 'Assigned' : 'Sold'}<small>${l.done.price} cr to ${esc(s.m[l.done.by].n)}</small></div></div>`;
+    else {
+      const f = l.done.fined || [];
+      stamp = `<div class="stamp pass"><div>Passed<small>${f.length ? 'No bids. ' + f.length + (f.length === 1 ? ' manager loses ' : ' managers lose ') + f[0][1] + ' cr' : 'No bids'}</small></div></div>`;
+    }
+  }
+  const seq = l.k + (l.done ? 'd' : '');
+  if (App._lastSeq !== seq) { if (l.done && l.done.by >= 0) gavel(); App._lastSeq = seq; }
+  patch('r-card', playerCard(p, { blind, stamp, lotLabel: 'Lot ' + String(l.k).padStart(3, '0') + ' · ' + E.POS_NAME[cat] }));
+  // bid box
+  if (s.cfg.sealed) {
+    const rev = l.done && l.done.rev && l.done.rev.length ? l.done.rev.slice().sort((a, b) => b[1] - a[1]).slice(0, 4).map(([j, v]) => `${esc(s.m[j].n)} ${v}`).join(' · ') : '';
+    patch('r-bid', `<span class="label">${l.done ? 'Sealed bids opened' : 'Sealed bids in'}</span>
+      <div class="bidnum num">${l.done ? (l.done.by >= 0 ? l.done.price + '<small>cr</small>' : '0') : l.sub.length}</div>
+      <div class="bidby">${l.done ? '<span>' + rev + '</span>' : `<span>of ${s.m.filter((m, j) => E.need(m, cat) > 0 && !l.out.includes(j)).length} still in</span>`}</div>
+      <div class="going" id="going"></div>`);
+  } else {
+    if (App._lastBid !== l.k + ':' + l.b) { if (l.b) beep(660, .05); App._lastBid = l.k + ':' + l.b; }
+    patch('r-bid', `<span class="label">Current bid</span>
+      <div class="bidnum num ${l.b ? 'bump' : ''}">${l.b}<small>cr</small></div>
+      <div class="bidby">${l.by >= 0 ? `<span class="paddle">${l.by + 1}</span><span>${esc(s.m[l.by].n)}${l.by === i ? ' (you)' : ''}</span>` : '<span>No bids yet</span>'}</div>
+      <div class="going" id="going"></div>`);
+  }
+  // controls
+  let ctl = '';
+  if (!mine) ctl = `<div class="ctl-msg">You're watching this sale.</div>`;
+  else if (l.done) {
+    const lost = (l.done.fined || []).find(f => f[0] === i);
+    ctl = `<div class="ctl-msg">${lost ? `Nobody bid, so you lost ${lost[1]} cr.` : l.done.auto && l.done.by === i ? `You're the last manager needing a ${E.POS_ONE[cat]}, so he's yours for ${l.done.price} cr.` : l.done.by === i ? 'Signed. Next lot coming up.' : l.done.auto ? `${esc(s.m[l.done.by].n)} is the last manager needing a ${E.POS_ONE[cat]}.` : 'Next lot coming up.'}</div>`;
+  }
+  else if (E.need(mine, cat) <= 0) ctl = `<div class="ctl-msg">Your ${E.POS_NAME[cat].toLowerCase()} are full. Watch your rivals spend.</div>`;
+  else {
+    const mx = E.maxBid(mine), empty = 11 - mine.s.length;
+    const line = `<div class="statusline">You can bid up to <b>${mx} cr</b>. ${empty - 1 > 0 ? `${empty - 1} cr stays reserved for your other empty ${empty - 1 === 1 ? 'slot' : 'slots'}.` : 'This is your last slot.'}</div>`;
+    if (s.cfg.sealed) {
+      const done = l.sub.includes(i), gone = l.out.includes(i);
+      if (done || gone) ctl = `<div class="ctl-msg">${done ? 'Your bid is sealed. Waiting for the others.' : "You passed on this one."}</div>`;
+      else ctl = `${line}<div class="ctl-row"><input type="number" id="bidamt" min="1" max="${mx}" placeholder="Your one bid" aria-label="Sealed bid in credits" inputmode="numeric"><button class="btn primary" data-a="seal" id="sealbtn">Seal bid</button><button class="btn" data-a="out" id="outbtn">Pass</button></div>`;
+    } else if (l.out.includes(i)) ctl = `<div class="ctl-msg">You're out of this one.</div>`;
+    else if (l.by === i) ctl = `<div class="ctl-msg">You're the highest bidder. Hold your nerve.</div>`;
+    else if (mx <= l.b) ctl = `<div class="ctl-msg">This has gone past your limit of ${mx} cr.</div>`;
+    else {
+      const qs = units(s).map(u => l.b + u);
+      ctl = `${line}<div class="quick">${qs.map((v, q) => `<button class="btn primary" data-a="bid" data-v="${v}" id="q${q}" ${v > mx ? 'disabled' : ''}><b>${v}</b><small>+${v - l.b} cr</small></button>`).join('')}</div>
+        <div class="ctl-row"><input type="number" id="bidamt" min="${l.b + 1}" max="${mx}" placeholder="Other amount" aria-label="Custom bid in credits" inputmode="numeric"><button class="btn" data-a="bidc" id="bidcbtn">Bid</button><button class="btn" data-a="out" id="outbtn">I'm out</button></div>`;
+    }
+  }
+  patch('r-ctl', ctl);
+  // squad
+  if (mine) patch('r-xi', xiPitch(mine, s));
+  else patch('r-xi', '<p class="mute">Join a game to build a squad.</p>');
+  patch('r-sales', s.log.length ? s.log.map(([pid, by, price]) => `<div class="sale"><span><b>${esc(shortName(E.getP(pid).name))}</b> to ${esc(s.m[by].n)}</span><span class="num">${price} cr</span></div>`).join('') : '<span class="mute">No sales yet.</span>');
+};
+// Your XI during the sale: signed players fill their position group in formation order.
+const xiPitch = (m, s) => {
+  const slots = E.FORMATIONS[m.f].slots, left = m.s.slice();
+  const filled = slots.map(sl => {
+    const cat = E.CAT[sl.role];
+    const candidates = left.filter(id => E.getP(id).cat === cat);
+    if (!candidates.length) return null;
+    candidates.sort((a, b) => E.effective(E.getP(b), sl.role) - E.effective(E.getP(a), sl.role));
+    left.splice(left.indexOf(candidates[0]), 1);
+    return candidates[0];
+  });
+  return `<div class="tpitch small pitchbg" style="background-size:30% 100%">${pitchLines}${slots.map((sl, j) => {
+    const id = filled[j];
+    if (id === null) return `<div class="tok empty" style="left:${sl.x}%;top:${sl.y}%"><span class="dot">${sl.role}</span></div>`;
+    const p = E.getP(id);
+    return `<div class="tok" style="left:${sl.x}%;top:${sl.y}%"><span class="dot">${s.cfg.blind ? '' : p.ovr}</span><span class="tn">${esc(shortName(p.name))}</span></div>`;
+  }).join('')}</div>`;
+};
+
+// ---- lineup ----
+const TACTICS = [['Balanced', 'No extra risk in either direction.'], ['Counter', 'Fewer chances for both sides. Quick teams benefit most, and all-out opponents get punished.'], ['All-out', 'More chances at both ends of the pitch.']];
+const renderLine = () => {
+  setScreen('line', `${topBar()}<div class="wrap">
+    <div class="head pitchbg"><div><span class="label">Squads complete</span><h1>Check the lineups</h1></div><p style="max-width:42ch">Tap one player, then another, to swap them. Players out of position lose rating.</p></div>
+    ${timerRow()}<div class="line-grid"><section id="r-lp"></section><section id="r-lside" style="display:grid;gap:14px;min-width:0"></section></div></div>`);
+  const s = App.s, i = me(), mine = s.m[i], blind = s.cfg.blind;
+  if (!mine) {
+    patch('r-lp', `<p class="panel">You're watching. Managers are setting their lineups.</p>`);
+    patch('r-lside', '');
+    return;
+  }
+  const slots = E.FORMATIONS[mine.f].slots;
+  patch('r-lp', `<div class="tpitch pitchbg" style="background-size:30% 100%">${pitchLines}${slots.map((sl, j) => {
+    const p = E.getP(mine.s[j]), pen = E.fitPenalty(p, sl.role);
+    const fit = blind ? '' : pen ? `<span class="fit ${pen >= 4 ? 'bad' : ''}">${sl.role} -${pen}</span>` : `<span class="fit" style="background:none;color:var(--chalk);text-shadow:0 1px 2px rgba(0,0,0,.65)">${sl.role}</span>`;
+    return `<button class="tok ${App.sel === j ? 'sel' : ''}" style="left:${sl.x}%;top:${sl.y}%" data-a="tok" data-v="${j}" aria-label="${esc(p.name)} at ${sl.role}${pen && !blind ? ', ' + pen + ' rating penalty' : ''}"><span class="dot">${blind ? sl.role : E.effective(p, sl.role)}</span><span class="tn">${esc(shortName(p.name))}</span>${fit}</button>`;
+  }).join('')}</div>`);
+  const showTeam = !blind || s.cfg.showOvr;
+  patch('r-lside', `<div class="panel"><div class="field"><span class="label">Tactic</span>
+      <div class="seg" role="group">${TACTICS.map((t, j) => `<button data-a="tac" data-v="${j}" class="${mine.tac === j ? 'on' : ''}" aria-pressed="${mine.tac === j}">${t[0]}</button>`).join('')}</div><p class="hint">${TACTICS[mine.tac][1]}</p></div>
+      ${showTeam ? `<div class="field"><span class="label">${esc(E.FORMATIONS[mine.f].name)} team overall</span><div class="ovr-big num">${E.teamOverall(mine)}</div></div>` : ''}
+      <div class="cta-row"><button class="btn" data-a="autoxi">Best positions</button><button class="btn primary" data-a="ready" id="readybtn" ${mine.r ? 'disabled' : ''}>${mine.r ? 'Ready. Waiting for the others' : "I'm ready"}</button></div></div>
+    <div class="panel"><h2>Rival managers</h2><ul class="mlist">${s.m.map((m, j) => `<li class="mrow"><span class="paddle">${j + 1}</span><span class="nm">${esc(m.n)}</span><span class="chip">${E.FORMATIONS[m.f].name}</span>${showTeam ? `<span class="chip">${E.teamOverall(m)}</span>` : ''}${m.r ? '<span class="chip ok">Ready</span>' : ''}</li>`).join('')}</ul></div>`);
+};
+
+// ---- match simulator: every browser draws the same seeded matches on the host's clock ----
+const MD_DUR = 30000, SEMI_DUR = 40000, FINAL_DUR = 60000, PEN_STEP = 1200, SEG_GAP = 3500;
+const SPEEDS = [1, 2, 4, 6];
+const ensureReel = () => {
+  const s = App.s, key = s.seed + ':' + s.m.map(m => m.s.join()).join('|');
+  if (App.reel && App.reel.key === key) return App.reel;
+  const T = E.runTournament(s), segs = [];
+  let at = 0;
+  T.league.forEach((md, i) => { segs.push({ kind: 'md', i, start: at, dur90: MD_DUR, matches: md }); at += MD_DUR + SEG_GAP; });
+  T.ko.forEach((x, i) => {
+    const dur90 = i === T.ko.length - 1 ? FINAL_DUR : SEMI_DUR, pens = x.pens ? x.pens.seq.length * PEN_STEP : 0;
+    segs.push({ kind: 'ko', i, start: at, dur90, pens, matches: [x] });
+    at += dur90 + pens + SEG_GAP + (i === T.ko.length - 1 ? 2500 : 0);
+  });
+  App.reel = { key, T, segs, total: at, details: new Map(), watch: null, lastUi: '', lastGoal: '', stage: 'play' };
+  return App.reel;
+};
+const simTime = () => { const s = App.s; if (!s || !s.sim) return 0; return App.isHost ? s.sim.t : s.sim.t + (performance.now() - App.recvAt) * s.sim.sp; };
+const nameOf = (s, i) => s.m[i].n;
+const qualifiers = T => (T.fmt === 'semis' ? 4 : T.fmt === 'final' ? 2 : 1);
+const detailOf = (R, x) => {
+  const k = x.key + ':' + x.h + ':' + x.a;
+  if (!R.details.has(k)) R.details.set(k, E.matchDetail(App.s, x));
+  return R.details.get(k);
+};
+const tableHtml = (s, rows, q) => `<div class="scroll-x"><table class="tbl"><thead><tr><th>#</th><th class="tn">Manager</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th></tr></thead><tbody>
+  ${rows.map((r, j) => { const gd = r.gf - r.ga; return `<tr class="${r.i === me() ? 'me' : ''} ${j < q ? 'q' : ''}"><td>${j + 1}</td><td class="tn" title="${esc(nameOf(s, r.i))}">${esc(nameOf(s, r.i))}</td><td>${r.pl}</td><td>${r.w}</td><td>${r.d}</td><td>${r.l}</td><td>${gd > 0 ? '+' : ''}${gd}</td><td class="pts">${r.pts}</td></tr>`; }).join('')}</tbody></table></div>`;
+const scoreAt = (x, g) => { let h = 0, a = 0; x.ev.forEach(e => { if (e.min <= g) { if (e.side === 0) h++; else a++; } }); return [h, a]; };
+const statsAt = (d, x, g) => {
+  const st = { poss: [0, 0], shots: [0, 0], target: [0, 0], corners: [0, 0], fouls: [0, 0], cards: [0, 0] };
+  const upto = Math.min(90, Math.floor(g));
+  for (let m = 0; m <= upto; m++) st.poss[d.poss[m]]++;
+  d.events.forEach(e => {
+    if (e.min > g) return;
+    if (e.type === 'goal') { st.shots[e.side]++; st.target[e.side]++; } else if (e.type === 'save') { st.shots[e.side]++; st.target[e.side]++; } else if (e.type === 'miss') st.shots[e.side]++; else if (e.type === 'corner') st.corners[e.side]++; else if (e.type === 'foul') st.fouls[e.side]++; else if (e.type === 'card') { st.fouls[e.side]++; st.cards[e.side]++; }
+  });
+  return st;
+};
+const eventText = (s, x, e) => {
+  const team = esc(nameOf(s, e.side === 0 ? x.h : x.a));
+  const pl = e.pid !== undefined ? esc(shortName(E.getP(e.pid).name)) : '';
+  if (e.type === 'goal') return `<b>Goal! ${pl}</b> scores for ${team}${e.as !== null && e.as !== undefined ? `, set up by ${esc(shortName(E.getP(e.as).name))}` : ''}.`;
+  if (e.type === 'save') return `${pl} forces a save for ${team}.`;
+  if (e.type === 'miss') return `${pl} shoots wide for ${team}.`;
+  if (e.type === 'corner') return `Corner to ${team}.`;
+  if (e.type === 'card') return `Yellow card for ${pl} of ${team}.`;
+  return `Foul by ${pl} of ${team}.`;
+};
+const speedHtml = () => {
+  const s = App.s, sp = s.sim ? s.sim.sp : 1;
+  if (!App.isHost) return `<span class="label">Match speed</span><span class="chip you">${sp}x</span><span class="mute" style="font-size:13px">The host controls this</span>`;
+  return `<span class="label">Match speed</span><div class="seg" role="group" aria-label="Match speed">${SPEEDS.map(v => `<button data-a="speed" data-v="${v}" class="${v === sp ? 'on' : ''}" aria-pressed="${v === sp}">${v}x</button>`).join('')}</div>`;
+};
+const simShell = () => `${topBar('<div class="rounds" id="r-stage"></div>')}<div class="wrap">
+  <div class="speedbar" id="r-speed"></div>
+  <div class="sim-live"><section class="viewer"><div id="r-sb"></div>
+    <div class="canvwrap pitchbg"><canvas id="pitchcv" aria-label="Live view of the match"></canvas><div id="r-flash"></div></div>
+    <div class="vgrid"><div class="panel"><h3>Match stats</h3><div id="r-stats"></div></div><div class="panel"><h3>Commentary</h3><div id="r-feed" class="comm"></div></div></div></section>
+  <aside class="simside"><section class="panel"><h3 id="r-fixh"></h3><div id="r-fixlist"></div></section><section class="panel"><h3>Table</h3><div id="r-tbl"></div></section></aside></div></div>`;
+const locateSeg = (R, t) => { let c = R.segs[0]; for (const sg of R.segs) { if (sg.start <= t) c = sg; else break; } return c; };
+const simFrame = () => {
+  const s = App.s, R = ensureReel(), T = R.T, t = simTime();
+  if (t >= R.total) { if (R.stage !== 'done') { R.stage = 'done'; renderResults(); } return; }
+  R.stage = 'play';
+  setScreen('sim', simShell());
+  const seg = locateSeg(R, t), elapsed = t - seg.start;
+  const g = Math.min(90, elapsed / seg.dur90 * 90), minute = Math.floor(g);
+  const penStep = seg.pens && elapsed > seg.dur90 ? Math.min(seg.matches[0].pens.seq.length, Math.floor((elapsed - seg.dur90) / PEN_STEP)) : 0;
+  // which match this browser is watching
+  const key = seg.kind + seg.i;
+  if (R.watchSeg !== key) {
+    R.watchSeg = key;
+    const mine = seg.matches.findIndex(x => x.h === me() || x.a === me());
+    R.watch = mine >= 0 ? mine : 0;
+  }
+  const x = seg.matches[R.watch] || seg.matches[0], d = detailOf(R, x);
+  drawPitch(R, seg, x, d, g, t);
+  const ui = key + ':' + R.watch + ':' + minute + ':' + penStep + ':' + (s.sim ? s.sim.sp : 1) + ':' + App.isHost;
+  if (ui === R.lastUi) return;
+  R.lastUi = ui;
+  patch('r-speed', speedHtml() + (App.isHost ? `<span class="sp"></span><button class="btn small" data-a="simskip">Skip to ${seg.kind === 'md' && T.ko.length ? 'knockouts' : 'results'}</button>` : ''));
+  patch('r-stage', seg.kind === 'md' ? `<span class="on">Matchday ${seg.i + 1} of ${T.league.length}</span>` : `<span class="on">${esc(x.name)}</span>`);
+  const [hg, ag] = scoreAt(x, g);
+  const over = g >= 90;
+  let penHtml = '', status = over ? 'Full time' : minute + "'";
+  if (x.pens && over) {
+    const seq = x.pens.seq.slice(0, penStep), done = penStep >= x.pens.seq.length;
+    const ph = done ? x.pens.h : seq.filter(q => q[0] === 0 && q[1]).length, pa = done ? x.pens.a : seq.filter(q => q[0] === 1 && q[1]).length;
+    status = done ? 'After penalties' : 'Penalties';
+    penHtml = `<div class="pens"><span class="num">Penalties ${ph}-${pa}</span>${seq.slice(-10).map(q => `<i class="pen ${q[1] ? 'in' : 'off'} ${q[0] ? 'aw' : ''}" title="${q[1] ? 'Scored' : 'Missed'}"></i>`).join('')}</div>`;
+  }
+  patch('r-sb', `<div class="sb"><div class="sbt"><i class="kit home"></i><span>${esc(nameOf(s, x.h))}</span></div><div class="sbc"><div class="sbs num">${hg}-${ag}</div><div class="sbm num">${status}</div></div><div class="sbt aw"><span>${esc(nameOf(s, x.a))}</span><i class="kit away"></i></div></div>${penHtml}`);
+  const st = statsAt(d, x, g), total = Math.max(1, st.poss[0] + st.poss[1]), hp = Math.round(st.poss[0] / total * 100);
+  const row = (label, a, b, suffix = '') => { const sum = a + b || 1; return `<div class="srow"><span class="num">${a}${suffix}</span><span class="slab">${label}</span><span class="num">${b}${suffix}</span><div class="sbar"><i style="width:${a / sum * 100}%"></i></div></div>`; };
+  patch('r-stats', row('Possession', hp, 100 - hp, '%') + row('Shots', st.shots[0], st.shots[1]) + row('On target', st.target[0], st.target[1]) + row('Corners', st.corners[0], st.corners[1]) + row('Fouls', st.fouls[0], st.fouls[1]) + row('Yellow cards', st.cards[0], st.cards[1]));
+  const shown = d.events.filter(e => e.min <= g).slice(-7).reverse();
+  patch('r-feed', (over ? `<div class="cline ft"><b>FT</b><span>Final whistle: ${hg}-${ag}.</span></div>` : '') + (shown.length ? shown.map(e => `<div class="cline ${e.type === 'goal' ? 'g' : ''}"><b class="num">${e.min}'</b><span>${eventText(s, x, e)}</span></div>`).join('') : `<div class="cline"><b class="num">1'</b><span>Kick-off. ${esc(nameOf(s, x.h))} against ${esc(nameOf(s, x.a))}.</span></div>`));
+  const goalNow = d.events.find(e => e.type === 'goal' && g >= e.min && g < e.min + 3);
+  patch('r-flash', goalNow ? `<div class="flash"><strong>Goal!</strong><span>${esc(E.getP(goalNow.pid).name)}</span></div>` : '');
+  if (goalNow) { const gk = key + goalNow.min + goalNow.pid; if (R.lastGoal !== gk) { R.lastGoal = gk; beep(880, .12, 'square', .05); } }
+  // side panel
+  const fh = $('r-fixh');
+  if (seg.kind === 'md') {
+    if (fh) fh.textContent = `Matchday ${seg.i + 1}`;
+    patch('r-fixlist', seg.matches.map((m, j) => { const [a, b] = scoreAt(m, g); return `<button class="fix2 ${j === R.watch ? 'on' : ''}" data-a="watch" data-v="${j}" aria-pressed="${j === R.watch}"><span class="t a ${m.h === me() ? 'me' : ''}">${esc(nameOf(s, m.h))}</span><span class="score num">${a}-${b}</span><span class="t ${m.a === me() ? 'me' : ''}">${esc(nameOf(s, m.a))}</span></button>`; }).join(''));
+    const done = T.league.slice(0, seg.i);
+    const live = minute > 0 ? seg.matches.map(m => { const [a, b] = scoreAt(m, g); return { h: m.h, a: m.a, hg: a, ag: b }; }) : [];
+    patch('r-tbl', tableHtml(s, E.tableFrom(s.m.length, done.concat([live])), qualifiers(T)));
+  } else {
+    if (fh) fh.textContent = 'Knockouts';
+    patch('r-fixlist', T.ko.map((m, j) => {
+      if (j > seg.i) return `<div class="fix2 muted"><span class="t a">${esc(m.name)}</span><span class="score num">v</span><span class="t">To come</span></div>`;
+      const [a, b] = j === seg.i ? scoreAt(m, g) : [m.hg, m.ag];
+      return `<div class="fix2 ${j === seg.i ? 'on' : ''}"><span class="t a">${esc(nameOf(s, m.h))}</span><span class="score num">${a}-${b}</span><span class="t">${esc(nameOf(s, m.a))}</span></div>`;
+    }).join(''));
+    patch('r-tbl', tableHtml(s, T.table, qualifiers(T)));
+  }
+};
+// Canvas pitch: 22 players and a ball. Purely a drawing of the seeded events, so it can't change a result.
+const reduceMotion = () => window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches;
+const drawPitch = (R, seg, x, d, g) => {
+  const cv = $('pitchcv');
+  if (!cv) return;
+  const s = App.s, w = cv.clientWidth, h = cv.clientHeight, dpr = window.devicePixelRatio || 1;
+  if (!w || !h) return;
+  if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+  const c = cv.getContext('2d');
+  c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  c.clearRect(0, 0, w, h);
+  const css = getComputedStyle(document.documentElement);
+  const line = 'rgba(255,255,255,.6)';
+  const PX = u => 8 + u * (w - 16), PY = v => 8 + v * (h - 16);
+  c.strokeStyle = line; c.lineWidth = 1.5;
+  c.strokeRect(PX(0), PY(0), PX(1) - PX(0), PY(1) - PY(0));
+  c.beginPath(); c.moveTo(PX(.5), PY(0)); c.lineTo(PX(.5), PY(1)); c.stroke();
+  c.beginPath(); c.arc(PX(.5), PY(.5), Math.min(w, h) * .13, 0, 6.2832); c.stroke();
+  [[0, .17], [1, -.17]].forEach(([ex, wd]) => { c.strokeRect(PX(ex), PY(.2), PX(ex + wd) - PX(ex), PY(.8) - PY(.2)); c.strokeRect(PX(ex), PY(.37), PX(ex + wd * .36) - PX(ex), PY(.63) - PY(.37)); });
+  const still = reduceMotion();
+  const fr = g - Math.floor(g), m0 = d.poss[Math.floor(g)] || 0, m1 = d.poss[Math.floor(g) + 1] === undefined ? m0 : d.poss[Math.floor(g) + 1];
+  const attack = (m0 === 0 ? 1 : 0) * (1 - fr) + (m1 === 0 ? 1 : 0) * fr; // 1 when the home side has the ball
+  const teams = [x.h, x.a].map(i => s.m[i]);
+  const pos = (side, j) => {
+    const sl = E.FORMATIONS[teams[side].f].slots[j];
+    const owning = side === 0 ? attack : 1 - attack;
+    const shift = j === 0 ? 0 : .02 + owning * .2;
+    let u = .05 + (100 - sl.y) / 100 * .46 + shift, v = .08 + sl.x / 100 * .84;
+    if (!still && j !== 0) { u += Math.sin(g * 1.1 + j * 1.7 + side) * .012; v += Math.cos(g * .8 + j * 2.3 + side) * .018; }
+    return side === 0 ? [u, v] : [1 - u, 1 - v];
+  };
+  const seed = s.seed ^ (x.key * 131);
+  const ownerAt = n => {
+    const mi = Math.min(91, Math.floor(n * .45)), side = d.poss[mi] || 0;
+    return [side, 1 + (E.hash(seed, n) % 10)];
+  };
+  const n = Math.floor(g / .45), f = g / .45 - n;
+  const a0 = ownerAt(n), a1 = ownerAt(n + 1);
+  let holder = a0, ball = null;
+  const ev = g >= 90 ? null : d.events.find(e => (e.type === 'goal' || e.type === 'save' || e.type === 'miss') && g >= e.min && g < e.min + 1);
+  const afterGoal = g >= 90 ? false : d.events.some(e => e.type === 'goal' && g >= e.min + 1 && g < e.min + 2);
+  if (g >= 90 || g < .2 || afterGoal) { ball = [.5, .5]; holder = null; } else if (ev) {
+    const j = Math.max(1, teams[ev.side].s.indexOf(ev.pid));
+    const from = pos(ev.side, j), goalU = ev.side === 0 ? 1 : 0;
+    const k = Math.min(1, (g - ev.min) * 2.2);
+    const lanes = { goal: .5, save: .5, miss: (E.hash(seed, ev.min) % 2) ? .3 : .7 };
+    const target = ev.type === 'save' ? pos(1 - ev.side, 0) : [goalU, lanes[ev.type]];
+    ball = [from[0] + (target[0] - from[0]) * k, from[1] + (target[1] - from[1]) * k];
+    holder = [ev.side, j];
+  } else if (still) { ball = pos(a0[0], a0[1]); } else {
+    const p0 = pos(a0[0], a0[1]), p1 = pos(a1[0], a1[1]), e = f < .5 ? 0 : (f - .5) * 2; // hold, then pass
+    ball = [p0[0] + (p1[0] - p0[0]) * e, p0[1] + (p1[1] - p0[1]) * e];
+  }
+  const colors = [{ fill: css.getPropertyValue('--paddle').trim() || '#FFC81E', edge: '#17241B' }, { fill: '#17241B', edge: '#F6FAF1' }];
+  const r = Math.max(5, Math.min(w, h) * .022);
+  [0, 1].forEach(side => {
+    teams[side].s.forEach((id, j) => {
+      const [u, v] = pos(side, j), own = holder && holder[0] === side && holder[1] === j;
+      c.beginPath(); c.arc(PX(u), PY(v), own ? r * 1.25 : r, 0, 6.2832);
+      c.fillStyle = colors[side].fill; c.fill(); c.lineWidth = j === 0 ? 2.5 : 1.5; c.strokeStyle = colors[side].edge; c.stroke();
+    });
+  });
+  if (holder) {
+    const p = E.getP(teams[holder[0]].s[holder[1]]), [u, v] = pos(holder[0], holder[1]);
+    c.font = `600 ${Math.max(11, Math.min(14, w * .022))}px ${css.getPropertyValue('--body')}`;
+    c.textAlign = 'center';
+    const label = shortName(p.name), ty = Math.max(14, PY(v) - r * 1.8);
+    c.lineWidth = 3; c.strokeStyle = 'rgba(0,0,0,.65)'; c.strokeText(label, Math.min(w - 40, Math.max(40, PX(u))), ty);
+    c.fillStyle = '#FFFFFF'; c.fillText(label, Math.min(w - 40, Math.max(40, PX(u))), ty);
+  }
+  if (ball) {
+    c.beginPath(); c.arc(PX(ball[0]), PY(ball[1]), Math.max(3.5, r * .55), 0, 6.2832);
+    c.fillStyle = '#FFFFFF'; c.fill(); c.lineWidth = 1.5; c.strokeStyle = '#000000'; c.stroke();
+  }
+};
+
+// ---- results ----
+const renderResults = () => {
+  const s = App.s, R = ensureReel(), T = R.T, ch = s.m[T.champ];
+  const host = App.isHost;
+  setScreen('res', `${topBar()}<div class="wrap"><section class="champ pitchbg" id="r-champ"></section><div class="res-grid"><section class="panel"><h2>Final table</h2><div id="r-ft"></div></section><section class="panel"><h2>Awards</h2><div class="awards" id="r-aw"></div></section><section class="panel" style="grid-column:1/-1"><h2>Every squad</h2><div id="r-sq"></div></section></div></div>`);
+  const youWon = T.champ === me();
+  patch('r-champ', `<div><span class="label">${youWon ? 'You did it' : 'Champions'}</span><h1>${esc(ch.n)}</h1><p style="margin-top:10px">${esc(E.FORMATIONS[ch.f].name)}, ${TACTICS[ch.tac][0].toLowerCase()}. Spent ${s.cfg.budget - ch.b} of ${s.cfg.budget} credits.</p>
+    <div class="cta-row">${host ? '<button class="btn primary" data-a="again">Play again</button>' : '<span>Waiting for the host to start another game.</span>'}</div></div>
+    <div class="tpitch small" style="background:rgba(0,0,0,.14)">${pitchLines}${E.FORMATIONS[ch.f].slots.map((sl, j) => { const p = E.getP(ch.s[j]); return `<div class="tok" style="left:${sl.x}%;top:${sl.y}%"><span class="dot">${p.ovr}</span><span class="tn">${esc(shortName(p.name))}</span></div>`; }).join('')}</div>`);
+  patch('r-ft', tableHtml(s, T.table, qualifiers(T)));
+  const aw = (label, val, sub) => `<div class="award"><span class="label">${label}</span><b>${esc(val)}</b><small>${sub}</small></div>`;
+  patch('r-aw', [
+    T.topScorer ? aw('Golden boot', E.getP(T.topScorer.id).name, `${T.topScorer.n} goals for ${esc(s.m[T.topScorer.by].n)}`) : '',
+    T.topAssist ? aw('Most assists', E.getP(T.topAssist.id).name, `${T.topAssist.n} assists for ${esc(s.m[T.topAssist.by].n)}`) : '',
+    T.value ? aw('Bargain of the sale', E.getP(T.value.id).name, `Rated ${E.getP(T.value.id).ovr}, cost ${T.value.price} cr`) : '',
+    T.dearest ? aw('Biggest fee', E.getP(T.dearest.id).name, `${T.dearest.price} cr from ${esc(s.m[T.dearest.by].n)}`) : '',
+  ].join(''));
+  patch('r-sq', s.m.map((m, i) => `<details class="sq" ${i === me() ? 'open' : ''}><summary><span>${esc(m.n)}</span><span class="num mute">${E.FORMATIONS[m.f].name} · overall ${E.teamOverall(m)}</span></summary><div class="sqlist">${m.s.map((id, j) => { const p = E.getP(id); return `<div><span class="num mute">${E.FORMATIONS[m.f].slots[j].role}</span><span>${esc(p.name)}</span><span class="num">${p.ovr}</span><span class="num mute">${m.p[j]} cr</span></div>`; }).join('')}</div></details>`).join(''));
+};
+
+// ---- master render ----
+const render = () => {
+  if (!App.s) { renderHome(); return; }
+  const ph = App.s.phase;
+  if (ph === 'lobby') { App.reel = null; renderLobby(); } else if (ph === 'form') renderForm(); else if (ph === 'auction') renderAuction(); else if (ph === 'line') renderLine(); else if (ph === 'sim') simFrame();
+};
+
+// Timer display runs on its own loop so typing and focus are never disturbed.
+const frame = () => {
+  const s = App.s, fuse = $('fuse'), secs = $('secs');
+  if (s && fuse && secs) {
+    let full = s.phase === 'form' ? 30000 : s.phase === 'line' ? 60000 : s.cfg.timer * 1000;
+    const t = timeLeft(), done = s.lot && s.lot.done;
+    const pct = done ? 0 : Math.max(0, Math.min(1, t / full));
+    fuse.style.transform = `scaleX(${pct})`;
+    fuse.style.width = '100%';
+    const wrap = fuse.parentElement;
+    if (wrap) wrap.classList.toggle('low', pct < .3);
+    secs.textContent = done ? '' : (t / 1000).toFixed(s.phase === 'auction' && t < 10000 ? 1 : 0) + 's';
+    const going = $('going');
+    if (going && s.phase === 'auction') {
+      let txt = '';
+      if (s.lot && !done && !s.cfg.sealed && s.lot.b > 0) txt = t < 1500 ? 'Going twice…' : t < 3000 ? 'Going once…' : '';
+      if (going.textContent !== txt) going.textContent = txt;
+    }
+  }
+  if (s && s.phase === 'sim' && s.sim) simFrame();
+  requestAnimationFrame(frame);
+};
+
+// ---- host loop ----
+let lastTick = performance.now();
+setInterval(() => {
+  const now = performance.now(), dt = Math.min(now - lastTick, 2000);
+  lastTick = now;
+  if (!App.s || !App.isHost) return;
+  const v0 = App.s.v;
+  E.botsStep(App.s, dt);
+  E.tick(App.s, dt);
+  if (App.net) App.net.broadcast(false);
+  if (App.s.v !== v0) render();
+}, 100);
+
+// ---- live lobbies, built on the viewer's room presence ----
+// The host browser runs the engine and publishes the whole game state in its presence.
+// Other browsers publish a short list of their latest actions. Anyone with room access can
+// set presence, so all of it is validated by the engine before it counts.
+class Net {
+  constructor(room, code, isHost) { this.room = room; this.code = code; this.host = isHost; this.seen = {}; this.q = Date.now(); this.acts = []; this.lastSt = null; this.lastSent = 0; this.lastV = -1; this.hostGone = 0; this.unsub = []; }
+  async open() {
+    let ch;
+    try { ch = await this.room.join('ggg-' + this.code.toLowerCase()); } catch (e) { if (e && e.code === 'not_permitted') ch = this.room; else throw e; }
+    this.ch = ch;
+    await ch.presence(this.base());
+    this.unsub.push(ch.onPeers(() => this.sync(), () => {}));
+    this.unsub.push(ch.onConnection(c => { setBanner(c ? '' : 'Reconnecting…'); }, () => {}));
+    this.timer = setInterval(() => this.watch(), 1000);
+  }
+  base() { return { g: this.code, id: myId, n: STORE.get('ggg-name') || 'Manager', a: [] }; }
+  peers() { return (this.ch ? this.ch.peers() : []).filter(p => p.presence && p.presence.g === this.code && typeof p.presence.id === 'string'); }
+  broadcast(force) {
+    const s = App.s;
+    if (!this.ch || !s) return;
+    const now = performance.now();
+    if (!force && s.v === this.lastV && now - this.lastSent < 1000) return;
+    this.lastV = s.v; this.lastSent = now;
+    this.ch.presence({ h: 1, st: E.snapshot(s) }).catch(() => {});
+  }
+  send(act) {
+    this.q++;
+    this.acts.push({ q: this.q, ...act });
+    if (this.acts.length > 6) this.acts.shift();
+    this.ch.presence({ a: this.acts }).catch(() => {});
+  }
+  sync() {
+    if (!this.ch) return;
+    if (this.host) this.syncHost(); else this.syncClient();
+  }
+  syncHost() {
+    const s = App.s, ps = this.peers();
+    if (!s) return;
+    if (ps.some(p => p.presence.id !== myId && p.presence.h && p.presence.st && (p.presence.st.v > s.v || (p.presence.st.v === s.v && p.presence.id < myId)))) {
+      this.host = false; App.isHost = false;
+      this.ch.presence({ h: null, st: null }).catch(() => {});
+      this.syncClient();
+      return;
+    }
+    let changed = false;
+    const present = new Set(ps.map(p => p.presence.id));
+    present.add(myId);
+    ps.forEach(p => {
+      const id = p.presence.id;
+      if (id === myId) return;
+      let i = s.m.findIndex(m => m.id === id);
+      if (i < 0 && s.phase === 'lobby' && s.m.length < 10) {
+        s.m.push(E.newManager(id, cleanName(p.presence.n), false));
+        s.m[s.m.length - 1].b = s.cfg.budget;
+        i = s.m.length - 1; changed = true;
+      }
+      if (i < 0) return;
+      const m = s.m[i];
+      if (!m.on) { m.on = 1; changed = true; }
+      if (s.phase === 'lobby') { const nn = cleanName(p.presence.n); if (m.n !== nn) { m.n = nn; changed = true; } }
+      const list = Array.isArray(p.presence.a) ? p.presence.a : [];
+      list.forEach(a => {
+        if (!a || !Number.isInteger(a.q) || a.q <= (this.seen[id] || 0)) return;
+        this.seen[id] = a.q;
+        if (E.act(s, i, { k: a.k, v: a.v })) changed = true;
+      });
+    });
+    const keep = [];
+    s.m.forEach(m => {
+      if (m.bot || present.has(m.id)) { keep.push(m); return; }
+      if (s.phase === 'lobby') { changed = true; return; } // left before the sale started
+      if (m.on) { m.on = 0; changed = true; }
+      keep.push(m);
+    });
+    s.m = keep;
+    if (changed) { s.v++; this.broadcast(true); render(); }
+  }
+  syncClient() {
+    const hostPeer = this.peers().filter(p => p.presence.h && p.presence.st && p.presence.id !== myId).sort((a, b) => b.presence.st.v - a.presence.st.v)[0];
+    if (!hostPeer) return;
+    this.hostGone = 0;
+    const st = hostPeer.presence.st;
+    if (st === this.lastSt) return;
+    this.lastSt = st;
+    App.s = st; App.recvAt = performance.now();
+    if (App.joining) { App.joining = false; App.msg = ''; setHash('join-' + this.code); }
+    setBanner('');
+    render();
+  }
+  // If the host's browser disappears, the next connected human picks the game up from the last snapshot.
+  watch() {
+    if (this.host) { this.syncHost(); return; }
+    const s = App.s, ps = this.peers();
+    if (ps.some(p => p.presence.h && p.presence.st && p.presence.id !== myId)) { this.hostGone = 0; return; }
+    this.hostGone++;
+    if (!s) {
+      if (App.joining && this.hostGone >= 7) { const c = this.code; leaveGame(); App.msg = `No lobby found for ${c}. Check the code with your host.`; render(); }
+      return;
+    }
+    if (this.hostGone < 5) { if (this.hostGone >= 2) setBanner('The host dropped out. Waiting…'); return; }
+    const ids = new Set(ps.map(p => p.presence.id));
+    const next = s.m.find(m => !m.bot && ids.has(m.id));
+    if (next && next.id === myId) {
+      App.s = JSON.parse(JSON.stringify(s));
+      App.s._sb = {}; App.s._bw = {}; App.s._bv = {};
+      App.isHost = true; this.host = true; setBanner('');
+      ps.forEach(p => { const list = Array.isArray(p.presence.a) ? p.presence.a : []; list.forEach(a => { if (a && Number.isInteger(a.q)) this.seen[p.presence.id] = Math.max(this.seen[p.presence.id] || 0, a.q); }); });
+      this.ch.presence({ a: [] }).catch(() => {});
+      this.broadcast(true);
+      render();
+    }
+  }
+  close() {
+    clearInterval(this.timer);
+    this.unsub.forEach(u => { try { u(); } catch (e) { /* already gone */ } });
+    if (this.ch && this.ch.leave) this.ch.leave().catch(() => {});
+    else if (this.ch) this.ch.presence({ g: null, id: null, st: null, h: null, a: null }).catch(() => {});
+    this.ch = null;
+  }
+}
+
+// ---- actions ----
+const readName = () => {
+  const el = $('mgrname');
+  const n = cleanName(el ? el.value : STORE.get('ggg-name'));
+  STORE.set('ggg-name', n);
+  return n;
+};
+const makeCode = () => { const c = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; let o = ''; for (let i = 0; i < 5; i++) o += c[Math.floor(Math.random() * c.length)]; return o; };
+const setHash = h => { try { if (h) location.hash = h; else history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* hash is a convenience */ } };
+const startSolo = () => {
+  const s = E.newState('SOLO');
+  s.m.push(E.newManager(myId, readName(), false));
+  E.addBot(s); E.addBot(s); E.addBot(s);
+  App.s = s; App.isHost = true; App.net = null; App.msg = ''; setBanner('');
+  render();
+};
+const startHost = async () => {
+  if (!App.roomApi) return;
+  const name = readName(), code = makeCode(), s = E.newState(code);
+  s.m.push(E.newManager(myId, name, false));
+  App.s = s; App.isHost = true; App.code = code; App.msg = ''; setBanner('');
+  const net = new Net(App.roomApi, code, true);
+  App.net = net;
+  render();
+  try {
+    await net.open();
+    net.broadcast(true);
+    setHash('join-' + code);
+  } catch (e) {
+    leaveGame();
+    App.msg = 'That lobby couldn\'t open right now. Try again in a moment, or play against AI.';
+    render();
+  }
+};
+const startJoin = async () => {
+  if (!App.roomApi) return;
+  const el = $('joincode');
+  const code = (el ? el.value : '').trim().toUpperCase();
+  if (!/^[A-Z0-9]{5}$/.test(code)) { App.msg = 'Lobby codes have 5 letters and numbers.'; render(); return; }
+  readName();
+  App.msg = `Looking for lobby ${code}…`; App.joining = true; App.code = code; App.isHost = false;
+  render();
+  const net = new Net(App.roomApi, code, false);
+  App.net = net;
+  try {
+    await net.open();
+    net.sync();
+  } catch (e) {
+    leaveGame();
+    App.msg = 'That lobby couldn\'t be reached. Check the code and try again.';
+    render();
+  }
+};
+const leaveGame = () => {
+  if (App.net) App.net.close();
+  App.net = null; App.s = null; App.isHost = false; App.code = null; App.joining = false; setBanner(''); App.reel = null; App.sel = -1;
+  setHash('');
+  demo.t = null;
+};
+const doAct = a => {
+  const s = App.s;
+  if (!s) return;
+  if (App.isHost) { if (E.act(s, me(), a)) { if (App.net) App.net.broadcast(true); render(); } } else if (App.net) App.net.send(a);
+};
+
+const handlers = {
+  solo: startSolo, host: startHost, join: startJoin,
+  sound(el) { App.sound = !App.sound; STORE.set('ggg-sound', App.sound ? '1' : '0'); if (App.sound) beep(660, .06); el.textContent = 'Sound ' + (App.sound ? 'on' : 'off'); el.setAttribute('aria-pressed', App.sound); },
+  leave(el) {
+    if (el.dataset.sure !== '1') {
+      el.dataset.sure = '1'; el.textContent = 'Really leave?';
+      setTimeout(() => { if (el.isConnected) { el.dataset.sure = ''; el.textContent = 'Leave'; } }, 3000);
+      return;
+    }
+    leaveGame(); App.msg = ''; render();
+  },
+  addbot() { if (App.isHost && E.addBot(App.s)) { if (App.net) App.net.broadcast(true); render(); } },
+  rmbot(el) { if (!App.isHost) return; const i = +el.dataset.v; if (App.s.m[i] && App.s.m[i].bot) { App.s.m.splice(i, 1); App.s.v++; if (App.net) App.net.broadcast(true); render(); } },
+  cfg(el) {
+    if (!App.isHost) return;
+    const k = el.dataset.k, raw = el.dataset.v, c = App.s.cfg;
+    if (['blind', 'sealed', 'showOvr'].includes(k)) c[k] = raw === '1'; else if (['budget', 'timer', 'rounds'].includes(k)) c[k] = +raw; else c[k] = raw;
+    App.s.v++;
+    App.s.m.forEach(m => { m.b = c.budget; });
+    if (App.net) App.net.broadcast(true);
+    render();
+  },
+  copy(el) {
+    const code = App.s.code;
+    const ok = () => { el.textContent = 'Copied'; setTimeout(() => { if (el.isConnected) el.textContent = 'Copy code'; }, 1400); };
+    if (navigator.clipboard) navigator.clipboard.writeText(code).then(ok).catch(() => { el.textContent = code; });
+    else el.textContent = code;
+  },
+  copylink(el) {
+    const link = location.origin + location.pathname + '#join-' + App.s.code;
+    const ok = () => { el.textContent = 'Link copied'; setTimeout(() => { if (el.isConnected) el.textContent = 'Copy invite link'; }, 1400); };
+    if (navigator.clipboard) navigator.clipboard.writeText(link).then(ok).catch(() => { el.textContent = link; });
+    else el.textContent = link;
+  },
+  start() { if (!App.isHost || App.s.m.length < 2) return; const seed = Math.floor(Math.random() * 4294967295); E.startGame(App.s, seed); if (App.net) App.net.broadcast(true); render(); },
+  form(el) { doAct({ k: 'form', v: +el.dataset.v }); },
+  ready() { doAct({ k: 'ready' }); },
+  bid(el) { doAct({ k: 'bid', v: +el.dataset.v }); },
+  bidc() { const i = $('bidamt'), v = parseInt(i && i.value, 10); if (Number.isInteger(v)) { doAct({ k: 'bid', v }); i.value = ''; } },
+  seal() { const i = $('bidamt'), v = parseInt(i && i.value, 10); if (Number.isInteger(v) && v >= 1) { doAct({ k: 'seal', v }); } },
+  out() { doAct({ k: 'out' }); },
+  tac(el) { doAct({ k: 'tac', v: +el.dataset.v }); },
+  tok(el) {
+    const j = +el.dataset.v, m = App.s.m[me()];
+    if (App.sel < 0) { App.sel = j; render(); return; }
+    if (App.sel === j) { App.sel = -1; render(); return; }
+    const o = m.s.slice();
+    [o[App.sel], o[j]] = [o[j], o[App.sel]];
+    App.sel = -1;
+    if (App.isHost) { E.act(App.s, me(), { k: 'order', v: o }); if (App.net) App.net.broadcast(true); render(); } else { doAct({ k: 'order', v: o }); render(); }
+  },
+  autoxi() { const m = App.s.m[me()]; App.sel = -1; doAct({ k: 'order', v: E.bestOrder(m.f, m.s) }); },
+  speed(el) { if (!App.isHost || !App.s.sim) return; App.s.sim.sp = +el.dataset.v; App.s.v++; if (App.net) App.net.broadcast(true); if (App.reel) App.reel.lastUi = ''; },
+  watch(el) { if (App.reel) { App.reel.watch = +el.dataset.v; App.reel.lastUi = ''; } },
+  simskip() {
+    if (!App.isHost || !App.s.sim) return;
+    const R = ensureReel(), t = simTime(), seg = locateSeg(R, t);
+    const firstKo = R.segs.find(x => x.kind === 'ko');
+    App.s.sim.t = seg.kind === 'md' && firstKo ? firstKo.start : R.total;
+    App.s.v++;
+    if (App.net) App.net.broadcast(true);
+  },
+  again() { if (App.isHost) { E.resetToLobby(App.s); App.reel = null; App.screen = ''; if (App.net) App.net.broadcast(true); render(); } },
+};
+document.addEventListener('click', ev => {
+  const el = ev.target.closest('[data-a]');
+  if (!el || el.disabled) return;
+  const f = handlers[el.dataset.a];
+  if (f) f(el);
+});
+document.addEventListener('keydown', ev => {
+  if (ev.key === 'Enter' && ev.target.id === 'joincode') { ev.preventDefault(); startJoin(); return; }
+  if (ev.key === 'Enter' && ev.target.id === 'bidamt') { ev.preventDefault(); (App.s && App.s.cfg.sealed ? handlers.seal : handlers.bidc)(); return; }
+  if (ev.target.tagName === 'INPUT' || !App.s || App.s.phase !== 'auction' || ev.metaKey || ev.ctrlKey) return;
+  const map = { 1: 'q0', 2: 'q1', 3: 'q2', x: 'outbtn' };
+  const b = $(map[ev.key.toLowerCase()]);
+  if (b && !b.disabled) b.click();
+});
+document.addEventListener('submit', ev => ev.preventDefault());
+document.addEventListener('input', ev => {
+  if (ev.target.id === 'mgrname') STORE.set('ggg-name', ev.target.value);
+  if (ev.target.id === 'joincode') ev.target.value = ev.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+});
+
+// ---- boot ----
+const start = data => {
+  if (data && data.s && !data.online) { App.s = data.s; App.isHost = true; }
+  let wanted = '';
+  try { const m = /^#join-([A-Za-z0-9]{5})$/.exec(location.hash); if (m) wanted = m[1].toUpperCase(); } catch (e) { /* no hash here */ }
+  render();
+  if (wanted && $('joincode')) $('joincode').value = wanted;
+  requestAnimationFrame(frame);
+  const finish = api => { App.roomApi = api || null; if (!App.s) render(); if (wanted && $('joincode')) $('joincode').value = wanted; };
+  if (window.GGG_ROOM) finish(window.GGG_ROOM);
+  else if (window.claude && window.claude.use) window.claude.use('room').then(finish, () => finish(null));
+  else finish(null);
+  if (wanted && !App.s) { App.msg = `You're invited to lobby ${wanted}. Enter your name and press Join lobby.`; render(); if ($('joincode')) $('joincode').value = wanted; }
+};
+if (window.claude && window.claude.hot && window.claude.hot.snapshot) {
+  try { window.claude.hot.snapshot(() => ({ s: App.net ? null : App.s, online: !!App.net })); } catch (e) { /* older viewer */ }
+}
+if (window.claude && window.claude.hot && window.claude.hot.ready) window.claude.hot.ready(start);
+else start((window.claude && window.claude.hot && window.claude.hot.data) || {});
+</script></body></html>
